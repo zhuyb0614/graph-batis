@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zhuyb.graphbatis.mapper.RoomDao">
+    <resultMap id="BaseResultMap" type="org.zhuyb.graphbatis.entity.Room">
+        <id column="t_room_room_id" jdbcType="INTEGER" property="roomId"/>
+        <result column="t_room_room_name" jdbcType="VARCHAR" property="roomName"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        t_room.room_id as t_room_room_id, t_room.room_name as t_room_room_name
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_room t_room
+        where t_room.room_id = #{roomId,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        DELETE FROM t_room
+        WHERE room_id = #{roomId,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" keyColumn="room_id" keyProperty="roomId" parameterType="org.zhuyb.graphbatis.entity.Room"
+            useGeneratedKeys="true">
+        INSERT INTO t_room (room_name)
+        VALUES (#{roomName,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" keyColumn="room_id" keyProperty="roomId"
+            parameterType="org.zhuyb.graphbatis.entity.Room" useGeneratedKeys="true">
+        insert into t_room
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="roomName != null">
+                room_name,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="roomName != null">
+                #{roomName,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="org.zhuyb.graphbatis.entity.Room">
+        update t_room
+        <set>
+            <if test="roomName != null">
+                room_name = #{roomName,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where room_id = #{roomId,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.zhuyb.graphbatis.entity.Room">
+        UPDATE t_room
+        SET room_name = #{roomName,jdbcType=VARCHAR}
+        WHERE room_id = #{roomId,jdbcType=INTEGER}
+    </update>
+
+    <select id="findRoomVos" resultType="org.zhuyb.graphbatis.entity.RoomVo">
+        SELECT
+        st.student_name,
+        st.student_id,
+        su.subject_name,
+        t.teacher_name,
+        t.teacher_id,
+        r.room_name
+        FROM
+        t_teacher_room AS tr
+        JOIN t_room AS r ON tr.room_id = r.room_id
+        JOIN t_student AS st ON st.room_id = r.room_id
+        JOIN t_teacher AS t ON tr.teacher_id = t.teacher_id
+        JOIN t_subject AS su ON su.subject_id = t.subject_id
+        <where>
+            <if test="rv.studentId!= null">
+                AND st.student_id = #{rv.studentId}
+            </if>
+            <if test="rv.teacherId!=null">
+                AND t.teacher_id = #{rv.teacherId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

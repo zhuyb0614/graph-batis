@@ -5,7 +5,7 @@ import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.zhuyb.graphbatis.interceptor.SqlInterceptor;
+import org.zhuyb.graphbatis.interceptor.CleanSqlInterceptor;
 
 @SpringBootApplication
 @MapperScan(value = "org.zhuyb.graphbatis.mapper")
@@ -17,7 +17,7 @@ public class GraphBatisApplication {
 
     @Bean
     ConfigurationCustomizer mybatisConfigurationCustomizer() {
-        return configuration -> configuration.addInterceptor(new SqlInterceptor());
+        return configuration -> configuration.addInterceptor(new CleanSqlInterceptor());
     }
 
 }

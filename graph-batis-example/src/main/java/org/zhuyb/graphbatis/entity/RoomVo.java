@@ -1,4 +1,4 @@
-package org.zhuyb.graphbatis.entity.vo;
+package org.zhuyb.graphbatis.entity;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

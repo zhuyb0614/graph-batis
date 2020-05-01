@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <plugins>
-        <plugin interceptor="org.zhuyb.graphbatis.interceptor.SqlInterceptor">
+        <plugin interceptor="org.zhuyb.graphbatis.interceptor.CleanSqlInterceptor">
             <property name="dialect" value="mysql"/>
         </plugin>
     </plugins>

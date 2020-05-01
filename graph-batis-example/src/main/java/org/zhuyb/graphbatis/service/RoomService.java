@@ -1,12 +1,22 @@
 package org.zhuyb.graphbatis.service;
 
-import com.github.pagehelper.PageInfo;
-import org.zhuyb.graphbatis.entity.vo.RoomVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.zhuyb.graphbatis.entity.RoomVo;
+import org.zhuyb.graphbatis.mapper.RoomDao;
+
+import java.util.List;
 
 /**
  * @author zhuyb
  * @date 2020/4/25
  */
-public interface RoomService {
-    PageInfo<RoomVo> getPageInfo(int pageNum, int pageSize, RoomVo roomVo);
+@Service
+public class RoomService {
+    @Autowired(required = false) //idea 报红
+    private RoomDao roomDao;
+
+    public List<RoomVo> findRoomVos(RoomVo roomVo) {
+        return roomDao.findRoomVos(roomVo);
+    }
 }
