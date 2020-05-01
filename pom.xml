@@ -20,6 +20,7 @@
 
     <modules>
         <module>graph-batis-example</module>
+        <module>graph-batis-core</module>
     </modules>
     <build>
         <plugins>

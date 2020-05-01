@@ -61,32 +61,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.pagehelper</groupId>
-            <artifactId>pagehelper-spring-boot-starter</artifactId>
-            <version>1.2.13</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-spring-boot-starter</artifactId>
             <version>5.0.2</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.graphql-java/graphql-java-tools -->
         <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java-tools</artifactId>
-            <version>5.2.4</version>
-        </dependency>
-        <!--<dependency>-->
-        <!--<groupId>org.zhuyb</groupId>-->
-        <!--<artifactId>my-graphql-java-tools</artifactId>-->
-        <!--<version>0.0.1-SNAPSHOT</version>-->
-        <!--</dependency>-->
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphiql-spring-boot-starter</artifactId>
-            <version>5.0.2</version>
+            <groupId>org.zhuyb</groupId>
+            <artifactId>graph-batis-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

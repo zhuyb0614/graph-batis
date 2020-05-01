@@ -23,7 +23,6 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.zhuyb.graphbatis.DataFetchingEnvHolder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,6 +60,7 @@ public class CleanSqlInterceptor implements Interceptor {
                 BoundSql cleanBoundSql = new BoundSql(mappedStatement.getConfiguration(), cleanSql, originBoundSql.getParameterMappings(), originBoundSql.getParameterObject());
                 args[BOUND_SQL_INDEX] = cleanBoundSql;
                 result = changedInvocation.proceed();
+                DataFetchingEnvHolder.remove();
             } else {
                 result = invocation.proceed();
             }

@@ -1,4 +1,4 @@
-package org.zhuyb.graphbatis;
+package org.zhuyb.graphbatis.interceptor;
 
 import graphql.schema.DataFetchingEnvironment;
 
@@ -17,7 +17,7 @@ public class DataFetchingEnvHolder {
         return ENVIRONMENT_THREAD_LOCAL.get();
     }
 
-    public static void remove(DataFetchingEnvironment env) {
+    public static void remove() {
         ENVIRONMENT_THREAD_LOCAL.remove();
     }
 }
