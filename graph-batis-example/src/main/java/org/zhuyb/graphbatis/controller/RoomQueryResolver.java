@@ -4,8 +4,8 @@ import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.zhuyb.graphbatis.DataFetchingEnvHolder;
 import org.zhuyb.graphbatis.entity.RoomVo;
-import org.zhuyb.graphbatis.interceptor.DataFetchingEnvHolder;
 import org.zhuyb.graphbatis.service.RoomService;
 
 import java.util.List;

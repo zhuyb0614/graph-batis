@@ -2,9 +2,14 @@
 <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
     <plugins>
         <plugin interceptor="org.zhuyb.graphbatis.interceptor.CleanSqlInterceptor">
             <property name="dialect" value="mysql"/>
         </plugin>
+        <!--想要6参query生效必须将下面这个放到最后-->
+        <plugin interceptor="org.zhuyb.graphbatis.interceptor.FourArgsInterceptor"/>
     </plugins>
 </configuration>

@@ -1,4 +1,4 @@
-package org.zhuyb.graphbatis.interceptor;
+package org.zhuyb.graphbatis;
 
 import graphql.schema.DataFetchingEnvironment;
 

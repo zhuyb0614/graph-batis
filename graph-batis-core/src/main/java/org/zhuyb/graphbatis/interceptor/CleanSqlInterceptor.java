@@ -23,6 +23,7 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zhuyb.graphbatis.DataFetchingEnvHolder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,6 +31,9 @@ import java.util.stream.Collectors;
 /**
  * @author zhuyb
  * @date 2020/4/25
+ * 如果没有
+ * @see FourArgsInterceptor
+ * 该interceptor无法生效
  */
 @Intercepts(
         {
