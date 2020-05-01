@@ -1,0 +1,4 @@
+type RoomVo {
+  studentName: String
+  roomName: String
+}
