@@ -6,9 +6,9 @@ import graphql.language.Selection;
 import graphql.language.SelectionSet;
 import graphql.schema.DataFetchingEnvironment;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -21,6 +21,7 @@ import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zhuyb.graphbatis.DataFetchingEnvHolder;
@@ -99,17 +100,106 @@ public class CleanSqlInterceptor implements Interceptor {
      */
     private void cleanJoins(PlainSelect selectBody, Set<String> cleanTableAlias) {
         List<Join> originJoins = selectBody.getJoins();
-        List<Join> cleanJoins = new ArrayList<>();
+        Set<Join> cleanJoinsNotSort = new HashSet<>();
+        Table fromItem = (Table) selectBody.getFromItem();
+        addExplicitJoin(cleanTableAlias, originJoins, cleanJoinsNotSort);
+        addImplicitJoin(cleanTableAlias, originJoins, cleanJoinsNotSort, fromItem);
+        selectBody.setJoins(getSortedJoins(originJoins, cleanJoinsNotSort));
+    }
+
+    /**
+     * 按原有排序,重新排序join
+     * 隐式关联将破坏原有顺序
+     *
+     * @param originJoins
+     * @param cleanJoinsNotSort
+     * @return
+     */
+    @NotNull
+    private List<Join> getSortedJoins(List<Join> originJoins, Set<Join> cleanJoinsNotSort) {
+        List<Join> cleanJoinsSorted = new ArrayList<>(cleanJoinsNotSort.size());
+        for (Join originJoin : originJoins) {
+            if (cleanJoinsNotSort.contains(originJoin)) {
+                cleanJoinsSorted.add(originJoin);
+            }
+        }
+        return cleanJoinsSorted;
+    }
+
+    /**
+     * 添加隐式关联,比如中间表
+     *
+     * @param cleanTableAlias
+     * @param originJoins
+     * @param cleanJoinsNotSort
+     * @param fromItem
+     */
+    private void addImplicitJoin(Set<String> cleanTableAlias, List<Join> originJoins, Set<Join> cleanJoinsNotSort, Table fromItem) {
+        for (Join join : cleanJoinsNotSort) {
+            EqualsTo onExpression = (EqualsTo) join.getOnExpression();
+            Column leftExpression = (Column) onExpression.getLeftExpression();
+            Column rightExpression = (Column) onExpression.getRightExpression();
+            String leftTableName = leftExpression.getTable().getName();
+            String rightTableName = rightExpression.getTable().getName();
+            Table rightItem = (Table) join.getRightItem();
+            if (getTableAliasName(rightItem).equals(leftTableName)) {
+                addLostJoin(cleanTableAlias, originJoins, cleanJoinsNotSort, fromItem, rightTableName);
+            } else {
+                addLostJoin(cleanTableAlias, originJoins, cleanJoinsNotSort, fromItem, leftTableName);
+            }
+        }
+    }
+
+    /**
+     * 获取显式关联,即根据select 字段或者where条件获得的
+     *
+     * @param cleanTableAlias
+     * @param originJoins
+     * @param cleanJoinsNotSort
+     */
+    private void addExplicitJoin(Set<String> cleanTableAlias, List<Join> originJoins, Set<Join> cleanJoinsNotSort) {
         for (Join join : originJoins) {
             Table table = (Table) join.getRightItem();
-            Alias tableAlias = table.getAlias();
-            if (cleanTableAlias.contains(tableAlias.getName())) {
-                cleanJoins.add(join);
+            if (cleanTableAlias.contains(getTableAliasName(table))) {
+                cleanJoinsNotSort.add(join);
             } else {
                 logger.info("table {} removed", table.getName());
             }
         }
-        selectBody.setJoins(cleanJoins);
+    }
+
+    /**
+     * @param table
+     * @return
+     * @see Table#getName()
+     * 有时getName有值有时没值,这里统一取别名
+     */
+    private String getTableAliasName(Table table) {
+        if (table.getAlias() != null) {
+            return table.getAlias().getName();
+        } else {
+            return table.getName();
+        }
+    }
+
+    /**
+     * 添加丢失不足的关联表 比如中间表,没查询字段,也没where条件
+     *
+     * @param cleanTableAlias
+     * @param originJoins
+     * @param cleanJoinsNotSort
+     * @param fromItem
+     * @param needTableName
+     */
+    private void addLostJoin(Set<String> cleanTableAlias, List<Join> originJoins, Set<Join> cleanJoinsNotSort, Table fromItem, String needTableName) {
+        if (!cleanTableAlias.contains(needTableName) && !getTableAliasName(fromItem).equals(needTableName)) {
+            for (Join originJoin : originJoins) {
+                Table rightItem = (Table) originJoin.getRightItem();
+                if (getTableAliasName(rightItem).equals(needTableName)) {
+                    cleanJoinsNotSort.add(originJoin);
+                }
+            }
+        }
     }
 
     /**
@@ -147,7 +237,7 @@ public class CleanSqlInterceptor implements Interceptor {
             String columnName = column.getColumnName();
             if (allGraphQLFieldNames.contains(columnName)) {
                 cleanSelectItems.add(selectItem);
-                cleanTableAlias.add(column.getTable().toString());
+                cleanTableAlias.add(getTableAliasName(column.getTable()));
             } else {
                 logger.info("column {} removed", column.getColumnName());
             }
@@ -162,6 +252,9 @@ public class CleanSqlInterceptor implements Interceptor {
      * @param columns
      */
     private void nextExpression(BinaryExpression expression, List<Column> columns) {
+        if (expression == null) {
+            return;
+        }
         Expression leftExpression = (expression).getLeftExpression();
         if (leftExpression != null && leftExpression instanceof BinaryExpression) {
             nextExpression((BinaryExpression) leftExpression, columns);
