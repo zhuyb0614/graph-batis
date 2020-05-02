@@ -55,15 +55,17 @@ public class CleanSqlInterceptor implements Interceptor {
         if (!SqlCommandType.SELECT.equals(mappedStatement.getSqlCommandType())) {
             result = invocation.proceed();
         } else {
+            long startTime = System.currentTimeMillis();
             DataFetchingEnvironment dataFetchingEnvironment = DataFetchingEnvHolder.get();
             if (dataFetchingEnvironment != null) {
                 Invocation changedInvocation = new Invocation(invocation.getTarget(), invocation.getMethod(), args);
                 BoundSql originBoundSql = (BoundSql) args[BOUND_SQL_INDEX];
                 String originSql = originBoundSql.getSql();
-                logger.info("origin sql {}", originSql);
+                logger.info("origin sql \n{}", originSql);
                 String cleanSql = getCleanSql(dataFetchingEnvironment, originSql);
                 BoundSql cleanBoundSql = new BoundSql(mappedStatement.getConfiguration(), cleanSql, originBoundSql.getParameterMappings(), originBoundSql.getParameterObject());
                 args[BOUND_SQL_INDEX] = cleanBoundSql;
+                logger.debug("clean sql cost {}ms", System.currentTimeMillis() - startTime);
                 result = changedInvocation.proceed();
                 DataFetchingEnvHolder.remove();
             } else {
