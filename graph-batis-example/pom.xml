@@ -70,6 +70,11 @@
             <artifactId>graphiql-spring-boot-starter</artifactId>
             <version>7.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.graphql-java-kickstart</groupId>
+            <artifactId>voyager-spring-boot-starter</artifactId>
+            <version>7.0.1</version>
+        </dependency>
 
         <dependency>
             <groupId>org.zhuyb</groupId>
