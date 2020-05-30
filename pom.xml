@@ -24,16 +24,6 @@
         <module>code-gen</module>
     </modules>
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <!--不设置会断点失效-->
-                    <fork>false</fork>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 
 </project>
