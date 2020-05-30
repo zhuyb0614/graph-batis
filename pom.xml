@@ -21,6 +21,7 @@
     <modules>
         <module>graph-batis-example</module>
         <module>graph-batis-core</module>
+        <module>code-gen</module>
     </modules>
     <build>
         <plugins>

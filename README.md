@@ -21,8 +21,9 @@ GraphQL&amp;Mybatis的绝妙搭配
 ![](https://github.com/zhuyb0614/graph-batis/raw/master/img/sql-log2.png)
 
 ##TODO
-1. 去除VO,使其符合GraphQL规范
-1. 向上抽取抽象,使其通用化不局限GraphQL
-1. 代码生成器提供
-1. 分页
-1. 复杂条件查询
+-[ ]  代码生成器提供
+-[ ]  去除VO,使其符合GraphQL规范
+-[ ]  分页
+-[ ]  复杂条件查询
+-[ ]  向上抽取抽象,使其通用化不局限GraphQL
+-[ ]  提供Client
