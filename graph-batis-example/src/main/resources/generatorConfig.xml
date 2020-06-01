@@ -8,11 +8,15 @@
     <context id="mysql" targetRuntime="MyBatis3">
         <!-- 生成的pojo，将implements Serializable-->
         <plugin type="org.mybatis.generator.plugins.SerializablePlugin"></plugin>
+        <plugin type="org.zhuyb.graphbatis.cg.GraphBatisPlugin">
+            <property name="mapperSuffix" value="Dao"/>
+            <property name="primaryKeyName" value="Id"/>
+        </plugin>
         <commentGenerator type="org.zhuyb.graphbatis.cg.GraphBatisCommentGenerator"/>
 
         <!-- 数据库链接URL、用户名、密码 -->
         <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
-                        connectionURL="jdbc:mysql://127.0.0.1:3306/graph-batis-test"
+                        connectionURL="jdbc:mysql://127.0.0.1:3306/graph-batis-test?relaxAutoCommit=true&amp;serverTimezone=Asia/Shanghai&amp;useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false"
                         userId="root"
                         password="123456">
         </jdbcConnection>
@@ -28,7 +32,7 @@
         生成model模型，对应的包路径，以及文件存放路径(targetProject)，targetProject可以指定具体的路径,如./src/main/java，
         也可以使用“MAVEN”来自动生成，这样生成的代码会在target/generatord-source目录下
         -->
-        <javaModelGenerator targetPackage="org.zhuyb.graphbatis.model" targetProject="./src/main/java">
+        <javaModelGenerator targetPackage="org.zhuyb.graphbatis.entity" targetProject="./src/main/java">
             <property name="enableSubPackages" value="true"/>
             <!-- 从数据库返回的值被清理前后的空格  -->
             <property name="trimStrings" value="true"/>
@@ -40,7 +44,7 @@
         </sqlMapGenerator>
 
         <!-- 对应的Mapper接口类文件 -->
-        <javaClientGenerator type="XMLMAPPER" targetPackage="org.zhuyb.graphbatis.dao"
+        <javaClientGenerator type="XMLMAPPER" targetPackage="org.zhuyb.graphbatis.mapper"
                              targetProject="./src/main/java">
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
