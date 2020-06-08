@@ -13,15 +13,16 @@
     <artifactId>graph-batis</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>graph-batis</name>
-    <description>Demo project for Spring Boot</description>
+    <description>dynamic database query using graphql and mybatis .</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>
 
     <modules>
-        <module>graph-batis-example</module>
+        <module>graph-batis-dependencies</module>
+        <module>graph-batis-generator</module>
         <module>graph-batis-core</module>
-        <module>code-gen</module>
+        <module>graph-batis-example</module>
     </modules>
     <build>
     </build>
