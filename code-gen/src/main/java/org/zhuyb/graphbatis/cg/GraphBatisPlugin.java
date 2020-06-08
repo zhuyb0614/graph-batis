@@ -24,17 +24,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
+/**
+ * @author zhuyb
+ * @date 2020/6/8 10:46
+ * GraphQL生成器
+ */
 @Slf4j
 public class GraphBatisPlugin extends PluginAdapter {
-    public static final Pattern DEFAULT_PRIMARY_KEY_PATTERN = Pattern.compile("PrimaryKey");
-    public static final Pattern DEFAULT_MAPPER_SUFFIX_PATTERN = Pattern.compile("Mapper$");
-    public static final Pattern DEFAULT_MAPPER_XML_SUFFIX_PATTERN = Pattern.compile("Mapper.xml$");
     public static final Map<Class<?>, GraphQLScalarType> CLASS_SCALAR_TYPE_MAP = new HashMap<>();
-    public static final String MAPPER_SUFFIX = "mapperSuffix";
-    public static final String PRIMARY_KEY_NAME = "primaryKeyName";
-    public static final String TEMPLATE_DIR_PATH = "templateDirPath";
 
     static {
         CLASS_SCALAR_TYPE_MAP.put(String.class, Scalars.GraphQLString);
@@ -49,65 +46,22 @@ public class GraphBatisPlugin extends PluginAdapter {
         CLASS_SCALAR_TYPE_MAP.put(Character.class, Scalars.GraphQLChar);
     }
 
-    private String mapperSuffix;
-    private String primaryKeyName;
     String templateDirPath = FTL_DIR_PATH;
     String schemaTemplatePath = SCHEMA_TEMPLATE_PATH;
     String schemaOutputPath = OUT_PATH;
-    public static final String OUT_PATH = "/data/graphql/schema";
-    public static final String FTL_DIR_PATH = OUT_PATH + "/ftl";
-    public static final String SCHEMA_TEMPLATE_PATH = "schama.ftl";
+    public static final String OUT_PATH;
+    public static final String FTL_DIR_PATH;
+    public static final String SCHEMA_TEMPLATE_PATH;
+
+    static {
+        OUT_PATH = new File("./src/main/resources").getAbsolutePath();
+        FTL_DIR_PATH = OUT_PATH + "/ftl";
+        SCHEMA_TEMPLATE_PATH = "schama.ftl";
+    }
 
     @Override
     public boolean validate(List<String> warnings) {
-        String mapperSuffix = properties.getProperty(MAPPER_SUFFIX);
-        String primaryKeyName = properties.getProperty(PRIMARY_KEY_NAME);
-        if (tooLong(mapperSuffix) || tooLong(primaryKeyName)) {
-            return false;
-        }
-        this.mapperSuffix = mapperSuffix; //$NON-NLS-1$
-        this.primaryKeyName = primaryKeyName; //$NON-NLS-1$
         return true;
-    }
-
-    private boolean tooLong(String str) {
-        if (str != null && str.length() > 10) {
-            log.error("str {} too long,max length 10", str);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void initialized(IntrospectedTable introspectedTable) {
-        renameMapper(introspectedTable);
-        renamePrimaryKey(introspectedTable);
-    }
-
-    /**
-     * 更改主键方法名
-     *
-     * @param introspectedTable
-     */
-    private void renamePrimaryKey(IntrospectedTable introspectedTable) {
-        if (primaryKeyName != null) {
-            introspectedTable.setUpdateByPrimaryKeyStatementId(DEFAULT_PRIMARY_KEY_PATTERN.matcher(introspectedTable.getUpdateByPrimaryKeyStatementId()).replaceAll(primaryKeyName));
-            introspectedTable.setSelectByPrimaryKeyStatementId(DEFAULT_PRIMARY_KEY_PATTERN.matcher(introspectedTable.getSelectByPrimaryKeyStatementId()).replaceAll(primaryKeyName));
-            introspectedTable.setUpdateByPrimaryKeySelectiveStatementId(DEFAULT_PRIMARY_KEY_PATTERN.matcher(introspectedTable.getUpdateByPrimaryKeySelectiveStatementId()).replaceAll(primaryKeyName));
-            introspectedTable.setDeleteByPrimaryKeyStatementId(DEFAULT_PRIMARY_KEY_PATTERN.matcher(introspectedTable.getDeleteByPrimaryKeyStatementId()).replaceAll(primaryKeyName));
-        }
-    }
-
-    /**
-     * 更改Mapper文件名
-     *
-     * @param introspectedTable
-     */
-    private void renameMapper(IntrospectedTable introspectedTable) {
-        if (mapperSuffix != null) {
-            introspectedTable.setMyBatis3JavaMapperType(DEFAULT_MAPPER_SUFFIX_PATTERN.matcher(introspectedTable.getMyBatis3JavaMapperType()).replaceAll(mapperSuffix));
-            introspectedTable.setMyBatis3XmlMapperFileName(DEFAULT_MAPPER_XML_SUFFIX_PATTERN.matcher(introspectedTable.getMyBatis3XmlMapperFileName()).replaceAll(mapperSuffix + ".xml"));
-        }
     }
 
     @Override

@@ -8,7 +8,8 @@
     <context id="mysql" targetRuntime="MyBatis3">
         <!-- 生成的pojo，将implements Serializable-->
         <plugin type="org.mybatis.generator.plugins.SerializablePlugin"></plugin>
-        <plugin type="org.zhuyb.graphbatis.cg.GraphBatisPlugin">
+        <plugin type="org.zhuyb.graphbatis.cg.GraphBatisPlugin"></plugin>
+        <plugin type="org.zhuyb.graphbatis.cg.RenamePlugin">
             <property name="mapperSuffix" value="Dao"/>
             <property name="primaryKeyName" value="Id"/>
         </plugin>

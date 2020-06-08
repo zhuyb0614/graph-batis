@@ -1,5 +1,5 @@
-type ${o.name} {
-<#list o.fileds as field>
-${field.name}: ${field.type}
+type ${name} {
+<#list fields as field>
+ ${field.name}: ${field.type.name}
 </#list>
 }
