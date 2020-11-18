@@ -3,3 +3,8 @@ type RoomVo {
   roomName: String
   teacherName: String
 }
+type Student {
+ studentId: Int
+ roomId: Int
+ studentName: String
+}

@@ -25,7 +25,7 @@ import java.util.Map;
  * @date 2020/11/18
  */
 @Slf4j
-public class SchemaExtGenerator extends FreemarkerExtGenerator implements ExtGenerator {
+public class SchemaGenerator extends FreemarkerExtGenerator implements ExtGenerator {
     public static final Map<Class<?>, GraphQLScalarType> CLASS_SCALAR_TYPE_MAP = new HashMap<>();
 
     static {
@@ -42,11 +42,11 @@ public class SchemaExtGenerator extends FreemarkerExtGenerator implements ExtGen
     }
 
     String schemaTemplateFileName = "schama.ftl";
-    String schemaOutputPath = new File("./src/main/resources").getAbsolutePath();
+    String schemaOutputPath = new File("./src/main/resources/schema/").getAbsolutePath();
 
     @Override
     public void generate(IntrospectedTable introspectedTable) {
-        getGraphQLSchema(introspectedTable);
+        graphQLSchemaGenerated(introspectedTable);
     }
 
     private void graphQLSchemaGenerated(IntrospectedTable introspectedTable) {

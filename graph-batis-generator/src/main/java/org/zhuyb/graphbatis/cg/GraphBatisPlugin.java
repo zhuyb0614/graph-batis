@@ -1,12 +1,11 @@
 package org.zhuyb.graphbatis.cg;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.zhuyb.graphbatis.cg.ext.ExtGenerator;
-import org.zhuyb.graphbatis.cg.ext.impl.QueryResolverGenerator;
-import org.zhuyb.graphbatis.cg.ext.impl.SchemaExtGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +19,25 @@ import java.util.List;
 public class GraphBatisPlugin extends PluginAdapter {
     public static final List<ExtGenerator> extGenerators = new ArrayList<>();
 
-    static {
-        extGenerators.add(new SchemaExtGenerator());
-        extGenerators.add(new QueryResolverGenerator());
-    }
-
     @Override
     public boolean validate(List<String> warnings) {
+        String extGeneratorNames = properties.getProperty("ext-generators");
+        if (StringUtils.isEmpty(extGeneratorNames)) {
+            log.warn("ext-generators is empty you can use QueryResolver,Schema");
+        } else {
+            String[] names = extGeneratorNames.split(",");
+            for (String name : names) {
+                try {
+                    extGenerators.add((ExtGenerator) Class.forName(String.format("org.zhuyb.graphbatis.cg.ext.impl.%sGenerator", name)).newInstance());
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         return true;
     }
 
