@@ -9,13 +9,21 @@ GraphQL&amp;Mybatis的绝妙搭配
 ## 效果演示
     通过graphIQL查询
     地址: http://localhost:8080/graphiql?query=%7B%0A%20%20findRoomVos(teacherId%3A1)%7B%0A%20%20%20%20roomName%0A%20%20%09studentName%0A%20%20%7D%0A%7D%0A
-![](https://github.com/zhuyb0614/graph-batis/raw/master/img/graphiQL.png)
+![](./img/graphiQL.png)
     
     查看日志输出实际只查询了前端传的两个字段
-![](https://github.com/zhuyb0614/graph-batis/raw/master/img/sql-log.png)
+![](./img/sql-log.png)
      
      再去掉一个字段
-![](https://github.com/zhuyb0614/graph-batis/raw/master/img/graphiQL2.png)
+![](./img/graphiQL2.png)
 
     sql也少查询了这个字段
-![](https://github.com/zhuyb0614/graph-batis/raw/master/img/sql-log2.png)
+![](./img/sql-log2.png)
+
+## 未来计划
+1.  fix example查询不符合规范
+1. 数据分页
+1. 复杂条件查询
+1. 客户端传参向上抽取通用化,不局限与graphQL
+1. 多数据库类型支持
+1. 代码生成器
