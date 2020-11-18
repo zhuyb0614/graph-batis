@@ -20,10 +20,10 @@ GraphQL&amp;Mybatis的绝妙搭配
     sql也少查询了这个字段
 ![](./img/sql-log2.png)
 
-##TODO
--[ ]  代码生成器提供
--[ ]  去除VO,使其符合GraphQL规范
--[ ]  分页
--[ ]  复杂条件查询
--[ ]  向上抽取抽象,使其通用化不局限GraphQL
--[ ]  提供Client
+## TODO
+- [x]  代码生成器提供
+- [ ]  去除VO,使其符合GraphQL规范
+- [ ]  分页
+- [ ]  复杂条件查询
+- [ ]  向上抽取抽象,使其通用化不局限GraphQL
+- [ ]  提供Client
