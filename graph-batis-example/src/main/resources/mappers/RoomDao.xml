@@ -15,7 +15,8 @@
         where t_room.room_id = #{roomId,jdbcType=INTEGER}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        DELETE FROM t_room
+        DELETE
+        FROM t_room
         WHERE room_id = #{roomId,jdbcType=INTEGER}
     </delete>
     <insert id="insert" keyColumn="room_id" keyProperty="roomId" parameterType="org.zhuyb.graphbatis.entity.Room"
@@ -64,7 +65,7 @@
         t_room AS r
         JOIN t_teacher_room AS tr ON tr.room_id = r.room_id
         JOIN t_student AS st ON st.room_id = r.room_id
-        JOIN t_teacher AS t ON tr.teacher_id = t.teacher_id
+        JOIN t_teacher AS t ON t.teacher_id = tr.teacher_id
         JOIN t_subject AS su ON su.subject_id = t.subject_id
         <where>
             <if test="rv.studentId!= null">
