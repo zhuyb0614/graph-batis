@@ -92,30 +92,17 @@ public class CleanSqlInterceptor implements Interceptor {
         PlainSelect selectBody = (PlainSelect) cleanSelectSql.getSelectBody();
         //获取所有查询字段
         Set<String> allGraphQLFieldNames = getAllGraphQLFieldNames(dataFetchingEnvironment);
-        Set<String> cleanTableAlias = new HashSet<>();
         //获取查询字段用到的字段
-        List<SelectItem> cleanSelectItems = getCleanSelectItems(selectBody, allGraphQLFieldNames);
-        selectBody.setSelectItems(cleanSelectItems);
+        selectBody.setSelectItems(getCleanSelectItems(selectBody, allGraphQLFieldNames));
+
+        Set<String> cleanTableAlias = new HashSet<>();
         //获取查询字段用到的表
-        Set<String> selectTablesAlias = getCleanSelectTablesAlias(selectBody, allGraphQLFieldNames);
-        cleanTableAlias.addAll(selectTablesAlias);
+        cleanTableAlias.addAll(getCleanSelectTablesAlias(selectBody, allGraphQLFieldNames));
         //获取条件字段用到的表
-        Set<String> whereTableAlias = getCleanWhereTables(selectBody);
-        cleanTableAlias.addAll(whereTableAlias);
-        String result;
-        if (cleanTableAlias.contains(selectBody.getFromItem().getAlias().getName())) {
-            //清理关联表
-            List<Join> cleanSortedJoins = getCleanJoins(selectBody, cleanTableAlias);
-            selectBody.setJoins(cleanSortedJoins);
-            result = cleanSelectSql.toString();
-        } else {
-            //选举主表
-            List<Join> cleanSortedJoins = getCleanJoins(selectBody, cleanTableAlias);
-            selectBody.setFromItem(cleanSortedJoins.get(0).getRightItem());
-            selectBody.setJoins(cleanSortedJoins.subList(1, cleanSortedJoins.size()));
-            result = getCleanSql(dataFetchingEnvironment, cleanSelectSql.toString());
-        }
-        return result;
+        cleanTableAlias.addAll(getCleanWhereTables(selectBody));
+        //清理关联表
+        selectBody.setJoins(getCleanJoins(selectBody, cleanTableAlias));
+        return cleanSelectSql.toString();
     }
 
     /**
