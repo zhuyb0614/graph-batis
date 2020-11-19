@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!--
+在spring里不能使用logback热加载 <configuration scan="true" scanPeriod="10 seconds" debug="debug">
+参见:https://docs.spring.io/spring-boot/docs/2.1.18.RELEASE/reference/html/boot-features-logging.html#boot-features-logback-extensions
+-->
+<configuration>
+    <!--    提示 includeCallerData=true,日志输出代码行数,代码方法 将极大影响日志性能.生产环境请关闭-->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <property name="appName" value="graph-batis-example"/>
+    <property name="logHome" value="/data/logs/${appName}"/>
+    <property name="CHARSET" value="UTF-8"/>
+    <property name="STDOUT_PATTEN"
+              value='%red([%d{yyyy-MM-dd HH:mm:ss.SSS}]) %highlight([%level]) %red([${PID:- }]) %red([%logger{5}\:%line]) %highlight([%msg]) %n'/>
+    <property name="INFO_LOG_PATTEN"
+              value='[%d{yyyy-MM-dd HH:mm:ss.SSS}][%level][${PID:- }][%thread][%logger{5}][%msg]%n'/>
+    <property name="ERROR_LOG_PATTEN"
+              value='[%d{yyyy-MM-dd HH:mm:ss.SSS}][%level][${PID:- }][%thread][%logger{5}][%msg]%n'/>
+    <contextName>${appName}</contextName>
+
+    <!--控制台打印-->
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
+            <pattern>${STDOUT_PATTEN}</pattern>
+        </encoder>
+    </appender>
+    <!-- 全等级日志文件 -->
+    <appender name="allAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 记录所有级别的日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ALL</level>
+        </filter>
+        <file>${logHome}/${appName}_all.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的压缩包，按天生成文件名 -->
+            <fileNamePattern>${logHome}/gz_${appName}/${appName}_all.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <MaxHistory>15</MaxHistory><!--日志文件保留天数 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!--按时间回滚的同时，按文件大小来回滚 -->
+                <maxFileSize>2GB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
+            <pattern>${STDOUT_PATTEN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="asyncAllAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 队列空闲空间小于此配置时,则会丢弃TRACT、DEBUG、INFO级别的日志。默认值为队列的1/5 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!--        包含调用者数据会花费更多的时间，日志打印的效率相差巨大。暂时不清楚有什么影响-->
+        <includeCallerData>false</includeCallerData>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="allAppender"/>
+    </appender>
+
+    <!-- ERROR日志文件 -->
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 临界值过滤器，过滤掉低于指定临界值的日志。 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <file>${logHome}/${appName}_error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名，按天生成文件名 -->
+            <fileNamePattern>${logHome}/gz_${appName}/${appName}_error.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <MaxHistory>90</MaxHistory><!--日志文件保留天数 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!--按时间回滚的同时，按文件大小来回滚 -->
+                <maxFileSize>1024MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
+            <pattern>${ERROR_LOG_PATTEN}</pattern>
+        </encoder>
+    </appender>
+    <appender name="asyncErrorAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 队列空闲空间小于此配置时,则会丢弃TRACT、DEBUG、INFO级别的日志。默认值为队列的1/5 -->
+        <discardingThreshold>100</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>256</queueSize>
+        <!--        包含调用者堆栈数据 java.lang.StackTraceElement会花费更多的时间，日志打印的效率相差巨大-->
+        <includeCallerData>false</includeCallerData>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="errorAppender"/>
+    </appender>
+
+
+    <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 只记录info等级到error以下等级日志 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <file>${logHome}/${appName}_info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名，按天生成文件名 -->
+            <fileNamePattern>${logHome}/gz_${appName}/${appName}_info.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <MaxHistory>30</MaxHistory><!--日志文件保留天数 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- 按时间回滚的同时，按文件大小来回滚 -->
+                <maxFileSize>1024MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
+            <pattern>${INFO_LOG_PATTEN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="asyncInfoAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 队列空闲空间小于此配置时,则会丢弃TRACT、DEBUG、INFO级别的日志。默认值为队列的1/5 -->
+        <discardingThreshold>200</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 包含调用者堆栈数据 java.lang.StackTraceElement会花费更多的时间，日志打印的效率相差巨大-->
+        <includeCallerData>false</includeCallerData>
+        <!-- 开启不堵塞 -->
+        <neverBlock>true</neverBlock>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="infoAppender"/>
+    </appender>
+
+    <!--
+    非生产环境
+    https://docs.spring.io/spring-boot/docs/2.1.18.RELEASE/reference/html/boot-features-logging.html#_profile_specific_configuration
+     -->
+    <springProfile name="!prod">
+        <root level="DEBUG">     <!--默认日志级别为info-->
+            <appender-ref ref="stdout"/>    <!--输出控制台-->
+            <appender-ref ref="asyncInfoAppender"/>     <!--打印到info日志文件-->
+            <appender-ref ref="asyncErrorAppender"/>    <!--打印到error日志文件-->
+            <appender-ref ref="asyncAllAppender"/>    <!--输出全等级日志-->
+        </root>
+    </springProfile>
+
+    <!-- 生产环境 -->
+    <springProfile name="prod">
+        <root level="info">     <!--默认日志级别为info-->
+            <appender-ref ref="asyncInfoAppender"/>     <!--打印到info日志文件-->
+            <appender-ref ref="asyncErrorAppender"/>     <!--打印到error日志文件-->
+        </root>
+    </springProfile>
+</configuration>

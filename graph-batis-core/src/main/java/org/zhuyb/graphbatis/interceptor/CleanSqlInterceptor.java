@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.zhuyb.graphbatis.DataFetchingEnvHolder;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -61,8 +62,11 @@ public class CleanSqlInterceptor implements Interceptor {
                 Invocation changedInvocation = new Invocation(invocation.getTarget(), invocation.getMethod(), args);
                 BoundSql originBoundSql = (BoundSql) args[BOUND_SQL_INDEX];
                 String originSql = originBoundSql.getSql();
-                logger.info("origin sql \n{}", originSql);
+                if (logger.isInfoEnabled()) {
+                    logger.info("origin sql {}", originSql.replaceAll("\n",""));
+                }
                 String cleanSql = getCleanSql(dataFetchingEnvironment, originSql);
+                logger.debug("clean sql {}", cleanSql);
                 BoundSql cleanBoundSql = new BoundSql(mappedStatement.getConfiguration(), cleanSql, originBoundSql.getParameterMappings(), originBoundSql.getParameterObject());
                 args[BOUND_SQL_INDEX] = cleanBoundSql;
                 logger.debug("clean sql cost {}ms", System.currentTimeMillis() - startTime);
@@ -86,12 +90,50 @@ public class CleanSqlInterceptor implements Interceptor {
     private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSql) throws JSQLParserException {
         Select cleanSelectSql = (Select) CCJSqlParserUtil.parse(originSql);
         PlainSelect selectBody = (PlainSelect) cleanSelectSql.getSelectBody();
+        //1.获取所有查询字段
         Set<String> allGraphQLFieldNames = getAllGraphQLFieldNames(dataFetchingEnvironment);
         Set<String> cleanTableAlias = new HashSet<>();
-        addSelectTablesAndCleanSelectItems(selectBody, allGraphQLFieldNames, cleanTableAlias);
-        addWhereTables(selectBody, cleanTableAlias);
+        //2.获取查询字段用到的表和字段
+        List<SelectItem> cleanSelectItems = getCleanSelectItems(selectBody, allGraphQLFieldNames);
+        Set<String> selectTablesAlias = getCleanSelectTablesAlias(allGraphQLFieldNames, selectBody);
+        //3.获取条件字段用到的表
+        Set<String> whereTableAlias = addWhereTables(selectBody);
+        selectBody.setSelectItems(cleanSelectItems);
+        cleanTableAlias.addAll(selectTablesAlias);
+        cleanTableAlias.addAll(whereTableAlias);
+        //4.清理关联表
         cleanJoins(selectBody, cleanTableAlias);
         return cleanSelectSql.toString();
+    }
+
+    /**
+     * 获取清理后的select的表
+     *
+     * @param allGraphQLFieldNames
+     * @param plainSelect
+     * @return
+     */
+    private Set<String> getCleanSelectTablesAlias(Set<String> allGraphQLFieldNames, PlainSelect plainSelect) {
+        Set<String> selectTableAlias = new HashSet<>();
+        selectItemsLoop(plainSelect.getSelectItems(), allGraphQLFieldNames, selectItem -> {
+            SelectExpressionItem selectExpressionItem = (SelectExpressionItem) selectItem;
+            Column column = (Column) selectExpressionItem.getExpression();
+            selectTableAlias.add(getTableAliasName(column.getTable()));
+        });
+        return selectTableAlias;
+    }
+
+    /**
+     * 获取清理后的select字段
+     *
+     * @param plainSelect
+     * @param allGraphQLFieldNames
+     * @return
+     */
+    private List<SelectItem> getCleanSelectItems(PlainSelect plainSelect, Set<String> allGraphQLFieldNames) {
+        List<SelectItem> cleanSelectItems = new ArrayList<>();
+        selectItemsLoop(plainSelect.getSelectItems(), allGraphQLFieldNames, selectItem -> cleanSelectItems.add(selectItem));
+        return cleanSelectItems;
     }
 
     /**
@@ -102,11 +144,11 @@ public class CleanSqlInterceptor implements Interceptor {
      */
     private void cleanJoins(PlainSelect selectBody, Set<String> cleanTableAlias) {
         List<Join> originJoins = selectBody.getJoins();
-        Set<Join> cleanJoinsNotSort = new HashSet<>();
+        Set<Join> cleanNotSortJoins = getExplicitJoins(cleanTableAlias, originJoins);
         Table fromItem = (Table) selectBody.getFromItem();
-        addExplicitJoin(cleanTableAlias, originJoins, cleanJoinsNotSort);
-        addImplicitJoin(cleanTableAlias, originJoins, cleanJoinsNotSort, fromItem);
-        selectBody.setJoins(getSortedJoins(originJoins, cleanJoinsNotSort));
+        addImplicitJoin(cleanTableAlias, originJoins, cleanNotSortJoins, fromItem);
+        List<Join> cleanSortedJoins = getCleanSortedJoins(originJoins, cleanNotSortJoins);
+        selectBody.setJoins(cleanSortedJoins);
     }
 
     /**
@@ -115,16 +157,17 @@ public class CleanSqlInterceptor implements Interceptor {
      *
      * @param originJoins
      * @param cleanJoinsNotSort
-     * @return
+     * @returnc
      */
     @NotNull
-    private List<Join> getSortedJoins(List<Join> originJoins, Set<Join> cleanJoinsNotSort) {
+    private List<Join> getCleanSortedJoins(List<Join> originJoins, Set<Join> cleanJoinsNotSort) {
         List<Join> cleanJoinsSorted = new ArrayList<>(cleanJoinsNotSort.size());
         for (Join originJoin : originJoins) {
             if (cleanJoinsNotSort.contains(originJoin)) {
                 cleanJoinsSorted.add(originJoin);
             }
         }
+        logger.debug("sorted joins {}", cleanJoinsNotSort);
         return cleanJoinsSorted;
     }
 
@@ -157,17 +200,20 @@ public class CleanSqlInterceptor implements Interceptor {
      *
      * @param cleanTableAlias
      * @param originJoins
-     * @param cleanJoinsNotSort
+     * @return
      */
-    private void addExplicitJoin(Set<String> cleanTableAlias, List<Join> originJoins, Set<Join> cleanJoinsNotSort) {
+    private Set<Join> getExplicitJoins(Set<String> cleanTableAlias, List<Join> originJoins) {
+        Set<Join> joins = new HashSet<>();
         for (Join join : originJoins) {
             Table table = (Table) join.getRightItem();
             if (cleanTableAlias.contains(getTableAliasName(table))) {
-                cleanJoinsNotSort.add(join);
+                logger.debug("add explicit join table {}", join);
+                joins.add(join);
             } else {
-                logger.info("table {} removed", table.getName());
+                logger.debug("table {} removed", table.getName());
             }
         }
+        return joins;
     }
 
     /**
@@ -198,6 +244,7 @@ public class CleanSqlInterceptor implements Interceptor {
             for (Join originJoin : originJoins) {
                 Table rightItem = (Table) originJoin.getRightItem();
                 if (getTableAliasName(rightItem).equals(needTableName)) {
+                    logger.debug("add lost join table {}", needTableName);
                     cleanJoinsNotSort.add(originJoin);
                 }
             }
@@ -208,9 +255,10 @@ public class CleanSqlInterceptor implements Interceptor {
      * 添加where中用到的表
      *
      * @param selectBody
-     * @param cleanTableAlias
+     * @return
      */
-    private void addWhereTables(PlainSelect selectBody, Set<String> cleanTableAlias) {
+    private Set<String> addWhereTables(PlainSelect selectBody) {
+        Set<String> cleanTableAlias = new HashSet<>();
         //从前台取后台取都行
 //            Set<String> allGraphQLArgumentsNames = getAllGraphQLArgumentsNames(dataFetchingEnvironment);
         Expression where = selectBody.getWhere();
@@ -218,17 +266,21 @@ public class CleanSqlInterceptor implements Interceptor {
         List<Column> expressions = new ArrayList<>();
         nextExpression(binaryExpression, expressions);
         for (Column expression : expressions) {
+            logger.debug("where table {}", expression.getTable().toString());
             cleanTableAlias.add(expression.getTable().toString());
         }
+        return cleanTableAlias;
     }
 
     /**
      * 添加select中用到的表,清理不需要的select字段
+     * 表意不清废弃
      *
      * @param selectBody
      * @param allGraphQLFieldNames
      * @param cleanTableAlias
      */
+    @Deprecated
     private void addSelectTablesAndCleanSelectItems(PlainSelect selectBody, Set<String> allGraphQLFieldNames, Set<String> cleanTableAlias) {
         List<SelectItem> originSelectItems = selectBody.getSelectItems();
         List<SelectItem> cleanSelectItems = new ArrayList<>();
@@ -241,10 +293,25 @@ public class CleanSqlInterceptor implements Interceptor {
                 cleanSelectItems.add(selectItem);
                 cleanTableAlias.add(getTableAliasName(column.getTable()));
             } else {
-                logger.info("column {} removed", column.getColumnName());
+                logger.debug("column {} removed", column.getColumnName());
             }
         }
+        logger.debug("origin select items -> {}", cleanSelectItems);
         selectBody.setSelectItems(cleanSelectItems);
+    }
+
+    private void selectItemsLoop(List<SelectItem> originSelectItems, Set<String> allGraphQLFieldNames, Consumer<SelectItem> selectItemConsumer) {
+        //注意这里只能取到别名partItems
+        for (SelectItem selectItem : originSelectItems) {
+            SelectExpressionItem selectExpressionItem = (SelectExpressionItem) selectItem;
+            Column column = (Column) selectExpressionItem.getExpression();
+            String columnName = column.getColumnName();
+            if (allGraphQLFieldNames.contains(columnName)) {
+                selectItemConsumer.accept(selectItem);
+            } else {
+                logger.debug("column {} removed", column.getColumnName());
+            }
+        }
     }
 
     /**
@@ -310,7 +377,11 @@ public class CleanSqlInterceptor implements Interceptor {
                         .stream()
                         .map(s -> CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE).convert(s))
                         .collect(Collectors.toSet());
+                logger.debug("all graphQL field names {}", fieldNames);
             }
+        }
+        if (fieldNames == null || fieldNames.isEmpty()) {
+            logger.debug("all graphQL field names is empty");
         }
         return fieldNames;
     }
@@ -344,7 +415,7 @@ public class CleanSqlInterceptor implements Interceptor {
 
     @Override
     public void setProperties(Properties properties) {
-        logger.info("properties {}", properties);
+        logger.debug("properties {}", properties);
     }
 
 }
