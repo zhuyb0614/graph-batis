@@ -62,11 +62,7 @@ public class CleanSqlInterceptor implements Interceptor {
                 Invocation changedInvocation = new Invocation(invocation.getTarget(), invocation.getMethod(), args);
                 BoundSql originBoundSql = (BoundSql) args[BOUND_SQL_INDEX];
                 String originSql = originBoundSql.getSql();
-                if (logger.isInfoEnabled()) {
-                    logger.info("origin sql ==> {}", originSql.replaceAll("\n", "").replaceAll("        ", ""));
-                }
                 String cleanSql = getCleanSql(dataFetchingEnvironment, originSql);
-                logger.info("clean sql ==> {}", cleanSql);
                 BoundSql cleanBoundSql = new BoundSql(mappedStatement.getConfiguration(), cleanSql, originBoundSql.getParameterMappings(), originBoundSql.getParameterObject());
                 args[BOUND_SQL_INDEX] = cleanBoundSql;
                 logger.debug("clean sql cost {}ms", System.currentTimeMillis() - startTime);
@@ -199,7 +195,7 @@ public class CleanSqlInterceptor implements Interceptor {
      * @return
      */
     private List<Join> getImplicitJoin(Set<String> cleanTableAlias, List<Join> originJoins, Set<Join> cleanJoinsNotSort, Table fromItem) {
-        List<Join> lostJoins = new ArrayList<>();
+        List<Join> implicitJoins = new ArrayList<>();
         for (Join join : cleanJoinsNotSort) {
             EqualsTo onExpression = (EqualsTo) join.getOnExpression();
             Column leftExpression = (Column) onExpression.getLeftExpression();
@@ -214,10 +210,11 @@ public class CleanSqlInterceptor implements Interceptor {
                 lostJoin = getLostJoin(cleanTableAlias, originJoins, fromItem, leftTableName);
             }
             if (lostJoin != null) {
-                lostJoins.add(lostJoin);
+                implicitJoins.add(lostJoin);
             }
         }
-        return lostJoins;
+        logger.debug("add implicit joins {}", implicitJoins);
+        return implicitJoins;
     }
 
     private boolean hasJoinFromTable(Set<Join> cleanJoinsNotSort, Table fromItem, Set<String> cleanTableAlias) {
@@ -248,19 +245,17 @@ public class CleanSqlInterceptor implements Interceptor {
      * @return
      */
     private Set<Join> getExplicitJoins(Set<String> cleanTableAlias, List<Join> originJoins) {
-        Set<Join> joins = new HashSet<>();
+        Set<Join> explicitJoins = new HashSet<>();
         if (originJoins != null) {
             for (Join join : originJoins) {
                 Table table = (Table) join.getRightItem();
                 if (cleanTableAlias.contains(getTableAliasName(table))) {
-                    logger.debug("add explicit join table {}", join);
-                    joins.add(join);
-                } else {
-                    logger.debug("table {} removed", table.getName());
+                    explicitJoins.add(join);
                 }
             }
         }
-        return joins;
+        logger.debug("add explicit joins {}", explicitJoins);
+        return explicitJoins;
     }
 
     /**

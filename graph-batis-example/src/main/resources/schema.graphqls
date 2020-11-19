@@ -2,6 +2,7 @@ type RoomVo {
   studentName: String
   roomName: String
   teacherName: String
+  subjectName: String
 }
 type Student {
  studentId: Int
