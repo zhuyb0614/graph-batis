@@ -97,12 +97,44 @@ public class CleanSqlInterceptor implements Interceptor {
 
         Set<String> cleanTableAlias = new HashSet<>();
         //获取查询字段用到的表
-        cleanTableAlias.addAll(getCleanSelectTablesAlias(selectBody, allGraphQLFieldNames));
+        Set<String> cleanSelectTablesAlias = getCleanSelectTablesAlias(selectBody, allGraphQLFieldNames);
+        cleanTableAlias.addAll(cleanSelectTablesAlias);
         //获取条件字段用到的表
         cleanTableAlias.addAll(getCleanWhereTables(selectBody));
         //清理关联表
-        selectBody.setJoins(getCleanJoins(selectBody, cleanTableAlias));
-        return cleanSelectSql.toString();
+        List<Join> originJoins = selectBody.getJoins();
+        Set<Join> cleanNotSortJoins = new HashSet<>();
+        cleanNotSortJoins.addAll(getExplicitJoins(cleanTableAlias, originJoins));
+        Table fromItem = (Table) selectBody.getFromItem();
+        boolean hasJoinFromTable = hasJoinFromTable(cleanNotSortJoins, fromItem, cleanTableAlias);
+        cleanNotSortJoins.addAll(getImplicitJoin(cleanTableAlias, originJoins, cleanNotSortJoins, fromItem));
+        List<Join> cleanSortedJoins = getCleanSortedJoins(originJoins, cleanNotSortJoins);
+        selectBody.setJoins(cleanSortedJoins);
+        if (!hasJoinFromTable && cleanSortedJoins.size() > 0) {
+            int joinSize = cleanSortedJoins.size();
+            if (joinSize == 2 && cleanSelectTablesAlias.size() == 1) {
+                for (Join cleanSortedJoin : cleanSortedJoins) {
+                    FromItem rightItem = cleanSortedJoin.getRightItem();
+                    if (rightItem.getAlias().getName().equals(cleanSelectTablesAlias.stream().findFirst().get())) {
+                        selectBody.setFromItem(rightItem);
+                        selectBody.setJoins(Collections.emptyList());
+                    }
+                }
+            } else {
+                selectBody.setFromItem(cleanSortedJoins.get(0).getRightItem());
+                if (joinSize == 1) {
+                    selectBody.setJoins(Collections.emptyList());
+                } else if (joinSize > 1) {
+                    selectBody.setJoins(cleanSortedJoins.subList(1, joinSize));
+                }
+            }
+        }
+        String cleanSql = cleanSelectSql.toString();
+        if (originSql.equals(cleanSql)) {
+            return cleanSql;
+        } else {
+            return getCleanSql(dataFetchingEnvironment, cleanSql);
+        }
     }
 
     /**
@@ -135,15 +167,6 @@ public class CleanSqlInterceptor implements Interceptor {
         return cleanSelectItems;
     }
 
-    @NotNull
-    private List<Join> getCleanJoins(PlainSelect selectBody, Set<String> cleanTableAlias) {
-        List<Join> originJoins = selectBody.getJoins();
-        Set<Join> cleanNotSortJoins = getExplicitJoins(cleanTableAlias, originJoins);
-        Table fromItem = (Table) selectBody.getFromItem();
-        addImplicitJoin(cleanTableAlias, originJoins, cleanNotSortJoins, fromItem);
-        return getCleanSortedJoins(originJoins, cleanNotSortJoins);
-    }
-
     /**
      * 按原有排序,重新排序join
      * 隐式关联将破坏原有顺序
@@ -173,8 +196,9 @@ public class CleanSqlInterceptor implements Interceptor {
      * @param originJoins
      * @param cleanJoinsNotSort
      * @param fromItem
+     * @return
      */
-    private void addImplicitJoin(Set<String> cleanTableAlias, List<Join> originJoins, Set<Join> cleanJoinsNotSort, Table fromItem) {
+    private List<Join> getImplicitJoin(Set<String> cleanTableAlias, List<Join> originJoins, Set<Join> cleanJoinsNotSort, Table fromItem) {
         List<Join> lostJoins = new ArrayList<>();
         for (Join join : cleanJoinsNotSort) {
             EqualsTo onExpression = (EqualsTo) join.getOnExpression();
@@ -193,7 +217,27 @@ public class CleanSqlInterceptor implements Interceptor {
                 lostJoins.add(lostJoin);
             }
         }
-        cleanJoinsNotSort.addAll(lostJoins);
+        return lostJoins;
+    }
+
+    private boolean hasJoinFromTable(Set<Join> cleanJoinsNotSort, Table fromItem, Set<String> cleanTableAlias) {
+        boolean hasFromTable = false;
+        String fromTableName = fromItem.getAlias().getName();
+        if (!cleanTableAlias.contains(fromTableName)) {
+            for (Join join : cleanJoinsNotSort) {
+                EqualsTo onExpression = (EqualsTo) join.getOnExpression();
+                Column leftExpression = (Column) onExpression.getLeftExpression();
+                Column rightExpression = (Column) onExpression.getRightExpression();
+                String leftTableName = leftExpression.getTable().getName();
+                String rightTableName = rightExpression.getTable().getName();
+                if (!hasFromTable && (fromTableName.equals(rightTableName) || fromTableName.equals(leftTableName))) {
+                    hasFromTable = true;
+                }
+            }
+        } else {
+            hasFromTable = true;
+        }
+        return hasFromTable;
     }
 
     /**
