@@ -189,7 +189,9 @@ public class CleanSqlInterceptor implements Interceptor {
             } else {
                 lostJoin = getLostJoin(cleanTableAlias, originJoins, fromItem, leftTableName);
             }
-            lostJoins.add(lostJoin);
+            if (lostJoin != null) {
+                lostJoins.add(lostJoin);
+            }
         }
         cleanJoinsNotSort.addAll(lostJoins);
     }
