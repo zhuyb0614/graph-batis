@@ -13,6 +13,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -47,6 +48,8 @@ public class CleanSqlInterceptor implements Interceptor {
     public static final Logger logger = LoggerFactory.getLogger(CleanSqlInterceptor.class);
     public static final int BOUND_SQL_INDEX = 5;
     public static final int MAPPED_STATEMENT_INDEX = 0;
+    public static final int DEFAULT_MAX_LOOP_DEEP = -1;
+    private int maxLoopDeep = DEFAULT_MAX_LOOP_DEEP;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -75,6 +78,10 @@ public class CleanSqlInterceptor implements Interceptor {
         return result;
     }
 
+    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSql) throws JSQLParserException {
+        return getCleanSql(dataFetchingEnvironment, originSql, 0);
+    }
+
     /**
      * 获取过滤后的SQL
      *
@@ -83,7 +90,10 @@ public class CleanSqlInterceptor implements Interceptor {
      * @return
      * @throws JSQLParserException
      */
-    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSql) throws JSQLParserException {
+    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSql, int loopTimes) throws JSQLParserException {
+        if (maxLoopDeep != DEFAULT_MAX_LOOP_DEEP && loopTimes > maxLoopDeep) {
+            return originSql;
+        }
         Select cleanSelectSql = (Select) CCJSqlParserUtil.parse(originSql);
         PlainSelect selectBody = (PlainSelect) cleanSelectSql.getSelectBody();
         //获取所有查询字段
@@ -99,38 +109,56 @@ public class CleanSqlInterceptor implements Interceptor {
         cleanTableAlias.addAll(getCleanWhereTables(selectBody));
         //清理关联表
         List<Join> originJoins = selectBody.getJoins();
-        Set<Join> cleanNotSortJoins = new HashSet<>();
-        cleanNotSortJoins.addAll(getExplicitJoins(cleanTableAlias, originJoins));
         Table fromItem = (Table) selectBody.getFromItem();
-        boolean hasJoinFromTable = hasJoinFromTable(cleanNotSortJoins, fromItem, cleanTableAlias);
-        cleanNotSortJoins.addAll(getImplicitJoin(cleanTableAlias, originJoins, cleanNotSortJoins, fromItem));
-        List<Join> cleanSortedJoins = getCleanSortedJoins(originJoins, cleanNotSortJoins);
-        selectBody.setJoins(cleanSortedJoins);
-        if (!hasJoinFromTable && cleanSortedJoins.size() > 0) {
-            int joinSize = cleanSortedJoins.size();
-            if (joinSize == 2 && cleanSelectTablesAlias.size() == 1) {
-                for (Join cleanSortedJoin : cleanSortedJoins) {
-                    FromItem rightItem = cleanSortedJoin.getRightItem();
-                    if (rightItem.getAlias().getName().equals(cleanSelectTablesAlias.stream().findFirst().get())) {
-                        selectBody.setFromItem(rightItem);
-                        selectBody.setJoins(Collections.emptyList());
+        Set<Join> cleanNotSortJoins = new HashSet<>();
+        Set<Join> explicitJoins = getExplicitJoins(cleanTableAlias, originJoins);
+        if (explicitJoins.isEmpty()) {
+            selectBody.setJoins(Collections.emptyList());
+        } else {
+            cleanNotSortJoins.addAll(explicitJoins);
+            cleanNotSortJoins.addAll(getImplicitJoin(cleanTableAlias, originJoins, explicitJoins, fromItem));
+            List<Join> cleanSortedJoins = getCleanSortedJoins(originJoins, cleanNotSortJoins);
+            boolean needFromTable = needFromTable(explicitJoins, fromItem, cleanTableAlias);
+            //不需要主表,从join表里找出一个替换主表
+            if (!needFromTable && cleanSortedJoins.size() > 0) {
+                int joinSize = cleanSortedJoins.size();
+                FromItem fromTable;
+                List<Join> joins;
+                //有两个关联表,但是查询的字段只是一张表里的
+                if (joinSize == 2 && cleanSelectTablesAlias.size() == 1) {
+                    fromTable = getOnlyOneFromTable(cleanSelectTablesAlias, cleanSortedJoins);
+                    joins = Collections.emptyList();
+                } else {
+                    fromTable = cleanSortedJoins.get(0).getRightItem();
+                    if (joinSize <= 1) {
+                        joins = Collections.emptyList();
+                    } else {
+                        joins = cleanSortedJoins.subList(1, joinSize);
                     }
                 }
+                selectBody.setFromItem(fromTable);
+                selectBody.setJoins(joins);
             } else {
-                selectBody.setFromItem(cleanSortedJoins.get(0).getRightItem());
-                if (joinSize == 1) {
-                    selectBody.setJoins(Collections.emptyList());
-                } else if (joinSize > 1) {
-                    selectBody.setJoins(cleanSortedJoins.subList(1, joinSize));
-                }
+                selectBody.setJoins(cleanSortedJoins);
             }
         }
-        String cleanSql = cleanSelectSql.toString();
+        String cleanSql = selectBody.toString();
         if (originSql.equals(cleanSql)) {
             return cleanSql;
         } else {
-            return getCleanSql(dataFetchingEnvironment, cleanSql);
+            logger.debug("loop times {} clean sql ==> {}", loopTimes + 1, cleanSql);
+            return getCleanSql(dataFetchingEnvironment, cleanSql, loopTimes + 1);
         }
+    }
+
+    private FromItem getOnlyOneFromTable(Set<String> cleanSelectTablesAlias, List<Join> cleanSortedJoins) {
+        for (Join cleanSortedJoin : cleanSortedJoins) {
+            FromItem fromItem = cleanSortedJoin.getRightItem();
+            if (fromItem.getAlias().getName().equals(cleanSelectTablesAlias.stream().findFirst().get())) {
+                return fromItem;
+            }
+        }
+        return null;
     }
 
     /**
@@ -217,8 +245,8 @@ public class CleanSqlInterceptor implements Interceptor {
         return implicitJoins;
     }
 
-    private boolean hasJoinFromTable(Set<Join> cleanJoinsNotSort, Table fromItem, Set<String> cleanTableAlias) {
-        boolean hasFromTable = false;
+    private boolean needFromTable(Set<Join> cleanJoinsNotSort, Table fromItem, Set<String> cleanTableAlias) {
+        boolean needFromTable = false;
         String fromTableName = fromItem.getAlias().getName();
         if (!cleanTableAlias.contains(fromTableName)) {
             for (Join join : cleanJoinsNotSort) {
@@ -227,14 +255,16 @@ public class CleanSqlInterceptor implements Interceptor {
                 Column rightExpression = (Column) onExpression.getRightExpression();
                 String leftTableName = leftExpression.getTable().getName();
                 String rightTableName = rightExpression.getTable().getName();
-                if (!hasFromTable && (fromTableName.equals(rightTableName) || fromTableName.equals(leftTableName))) {
-                    hasFromTable = true;
+                //只要是所有表,有关联到了主表
+                if (fromTableName.equals(rightTableName) || fromTableName.equals(leftTableName)) {
+                    needFromTable = true;
+                    break;
                 }
             }
         } else {
-            hasFromTable = true;
+            needFromTable = true;
         }
-        return hasFromTable;
+        return needFromTable;
     }
 
     /**
@@ -286,7 +316,6 @@ public class CleanSqlInterceptor implements Interceptor {
             for (Join originJoin : originJoins) {
                 Table rightItem = (Table) originJoin.getRightItem();
                 if (getTableAliasName(rightItem).equals(needTableName)) {
-                    logger.debug("lost join table {}", needTableName);
                     return originJoin;
                 }
             }
@@ -431,7 +460,11 @@ public class CleanSqlInterceptor implements Interceptor {
 
     @Override
     public void setProperties(Properties properties) {
-        logger.debug("properties {}", properties);
+        String maxLoopDeepProp = properties.getProperty("maxLoopDeep");
+        if (StringUtils.isNumeric(maxLoopDeepProp)) {
+            maxLoopDeep = Integer.valueOf(maxLoopDeepProp);
+        }
+        logger.info("properties {}", properties);
     }
 
 }

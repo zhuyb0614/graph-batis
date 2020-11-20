@@ -17,7 +17,7 @@
     <property name="logHome" value="/data/logs/${appName}"/>
     <property name="CHARSET" value="UTF-8"/>
     <property name="STDOUT_PATTEN"
-              value='%red([%d{yyyy-MM-dd HH:mm:ss.SSS}]) %highlight([%level]) %red([${PID:- }]) %red([%logger{5}\:%line]) %highlight([%msg]) %n'/>
+              value='%red([%d{HH:mm:ss.SSS}]) %highlight([%level]) %red([%logger{0}\:%line]) %highlight([%msg]) %n'/>
     <property name="INFO_LOG_PATTEN"
               value='[%d{yyyy-MM-dd HH:mm:ss.SSS}][%level][${PID:- }][%thread][%logger{5}][%msg]%n'/>
     <property name="ERROR_LOG_PATTEN"
