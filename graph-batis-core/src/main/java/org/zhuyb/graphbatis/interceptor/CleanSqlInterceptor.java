@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zhuyb.graphbatis.DataFetchingEnvHolder;
+import org.zhuyb.graphbatis.entity.Tables;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -49,6 +50,9 @@ public class CleanSqlInterceptor implements Interceptor {
     public static final int BOUND_SQL_INDEX = 5;
     public static final int MAPPED_STATEMENT_INDEX = 0;
     public static final int DEFAULT_MAX_LOOP_DEEP = -1;
+    /**
+     * 循环剔出层数,默认无限
+     */
     private int maxLoopDeep = DEFAULT_MAX_LOOP_DEEP;
 
     @Override
@@ -108,40 +112,9 @@ public class CleanSqlInterceptor implements Interceptor {
         //获取条件字段用到的表
         cleanTableAlias.addAll(getCleanWhereTables(selectBody));
         //清理关联表
-        List<Join> originJoins = selectBody.getJoins();
-        Table fromItem = (Table) selectBody.getFromItem();
-        Set<Join> cleanNotSortJoins = new HashSet<>();
-        Set<Join> explicitJoins = getExplicitJoins(cleanTableAlias, originJoins);
-        if (explicitJoins.isEmpty()) {
-            selectBody.setJoins(Collections.emptyList());
-        } else {
-            cleanNotSortJoins.addAll(explicitJoins);
-            cleanNotSortJoins.addAll(getImplicitJoin(cleanTableAlias, originJoins, explicitJoins, fromItem));
-            List<Join> cleanSortedJoins = getCleanSortedJoins(originJoins, cleanNotSortJoins);
-            boolean needFromTable = needFromTable(explicitJoins, fromItem, cleanTableAlias);
-            //不需要主表,从join表里找出一个替换主表
-            if (!needFromTable && cleanSortedJoins.size() > 0) {
-                int joinSize = cleanSortedJoins.size();
-                FromItem fromTable;
-                List<Join> joins;
-                //有两个关联表,但是查询的字段只是一张表里的
-                if (joinSize == 2 && cleanSelectTablesAlias.size() == 1) {
-                    fromTable = getOnlyOneFromTable(cleanSelectTablesAlias, cleanSortedJoins);
-                    joins = Collections.emptyList();
-                } else {
-                    fromTable = cleanSortedJoins.get(0).getRightItem();
-                    if (joinSize <= 1) {
-                        joins = Collections.emptyList();
-                    } else {
-                        joins = cleanSortedJoins.subList(1, joinSize);
-                    }
-                }
-                selectBody.setFromItem(fromTable);
-                selectBody.setJoins(joins);
-            } else {
-                selectBody.setJoins(cleanSortedJoins);
-            }
-        }
+        Tables tables = getCleanTables(selectBody, cleanTableAlias, cleanSelectTablesAlias);
+        selectBody.setFromItem(tables.getFromItem());
+        selectBody.setJoins(tables.getJoins());
         String cleanSql = selectBody.toString();
         if (originSql.equals(cleanSql)) {
             return cleanSql;
@@ -151,14 +124,48 @@ public class CleanSqlInterceptor implements Interceptor {
         }
     }
 
-    private FromItem getOnlyOneFromTable(Set<String> cleanSelectTablesAlias, List<Join> cleanSortedJoins) {
-        for (Join cleanSortedJoin : cleanSortedJoins) {
-            FromItem fromItem = cleanSortedJoin.getRightItem();
-            if (fromItem.getAlias().getName().equals(cleanSelectTablesAlias.stream().findFirst().get())) {
-                return fromItem;
+    private Tables getCleanTables(PlainSelect selectBody, Set<String> cleanTableAlias, Set<String> cleanSelectTablesAlias) {
+        List<Join> originJoins = selectBody.getJoins();
+        Table oldFromItem = (Table) selectBody.getFromItem();
+        Set<Join> explicitJoins = getExplicitJoins(cleanTableAlias, originJoins);
+        FromItem newFromItem = oldFromItem;
+        List<Join> newJoins;
+        if (explicitJoins.isEmpty()) {
+            newJoins = Collections.emptyList();
+        } else {
+            Set<Join> cleanDisorderJoins = new HashSet<>();
+            cleanDisorderJoins.addAll(explicitJoins);
+            cleanDisorderJoins.addAll(getImplicitJoin(cleanTableAlias, originJoins, explicitJoins, oldFromItem));
+            List<Join> cleanOrderedJoins = getCleanOrderedJoins(originJoins, cleanDisorderJoins);
+            boolean isNeedFromTable = isNeedFromItem(explicitJoins, oldFromItem, cleanTableAlias);
+            //不需要主表,从join表里找出一个替换主表
+            if (!isNeedFromTable && cleanOrderedJoins.size() > 0) {
+                int cleanOrderedJoinsSize = cleanOrderedJoins.size();
+                //有两个关联表,但是查询的字段只是一张表里的  因为join表后边的on条件会增加一条附属表
+                if (cleanOrderedJoinsSize == 2 && cleanSelectTablesAlias.size() == 1) {
+                    FromItem result = oldFromItem;
+                    for (Join cleanSortedJoin : cleanOrderedJoins) {
+                        FromItem joinFromItem = cleanSortedJoin.getRightItem();
+                        if (joinFromItem.getAlias().getName().equals(cleanSelectTablesAlias.stream().findFirst().get())) {
+                            result = joinFromItem;
+                            break;
+                        }
+                    }
+                    newFromItem = result;
+                    newJoins = Collections.emptyList();
+                } else {
+                    newFromItem = cleanOrderedJoins.get(0).getRightItem();
+                    if (cleanOrderedJoinsSize <= 1) {
+                        newJoins = Collections.emptyList();
+                    } else {
+                        newJoins = cleanOrderedJoins.subList(1, cleanOrderedJoinsSize);
+                    }
+                }
+            } else {
+                newJoins = cleanOrderedJoins;
             }
         }
-        return null;
+        return new Tables(newFromItem, newJoins);
     }
 
     /**
@@ -200,7 +207,7 @@ public class CleanSqlInterceptor implements Interceptor {
      * @returnc
      */
     @NotNull
-    private List<Join> getCleanSortedJoins(List<Join> originJoins, Set<Join> cleanJoinsNotSort) {
+    private List<Join> getCleanOrderedJoins(List<Join> originJoins, Set<Join> cleanJoinsNotSort) {
         List<Join> cleanJoinsSorted = new ArrayList<>(cleanJoinsNotSort.size());
         if (originJoins != null) {
             for (Join originJoin : originJoins) {
@@ -245,7 +252,7 @@ public class CleanSqlInterceptor implements Interceptor {
         return implicitJoins;
     }
 
-    private boolean needFromTable(Set<Join> cleanJoinsNotSort, Table fromItem, Set<String> cleanTableAlias) {
+    private boolean isNeedFromItem(Set<Join> cleanJoinsNotSort, Table fromItem, Set<String> cleanTableAlias) {
         boolean needFromTable = false;
         String fromTableName = fromItem.getAlias().getName();
         if (!cleanTableAlias.contains(fromTableName)) {

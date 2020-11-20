@@ -1,11 +1,13 @@
 package org.zhuyb.graphbatis;
 
 import graphql.schema.DataFetchingEnvironment;
+import lombok.experimental.UtilityClass;
 
 /**
  * @author zhuyb
  * @date 2020/5/1
  */
+@UtilityClass
 public class DataFetchingEnvHolder {
     private static final ThreadLocal<DataFetchingEnvironment> ENVIRONMENT_THREAD_LOCAL = new ThreadLocal<>();
 
