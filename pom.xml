@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
     <groupId>com.github.zhuyb0614</groupId>
     <artifactId>graph-batis</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>graph-batis</name>
     <description>dynamic database query using graphql and mybatis .</description>
 
@@ -26,7 +26,7 @@
         <url>https://github.com/zhuyb0614/graph-batis</url>
         <connection>scm:git:git@github.com:zhuyb0614/graph-batis.git</connection>
         <developerConnection>scm:git:git@github.com:zhuyb0614/graph-batis.git</developerConnection>
-      <tag>v0.0.1</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <developers>
