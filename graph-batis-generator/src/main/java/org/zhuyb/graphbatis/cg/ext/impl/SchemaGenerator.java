@@ -22,7 +22,6 @@ import java.util.Map;
 
 /**
  * @author zhuyb
- * @date 2020/11/18
  */
 @Slf4j
 public class SchemaGenerator extends FreemarkerExtGenerator implements ExtGenerator {

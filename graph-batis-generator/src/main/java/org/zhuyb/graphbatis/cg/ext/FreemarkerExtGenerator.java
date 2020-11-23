@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.config.TableConfiguration;
-import org.zhuyb.graphbatis.cg.ext.ExtGenerator;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -17,7 +16,6 @@ import java.io.Writer;
 
 /**
  * @author zhuyb
- * @date 2020/11/18
  */
 @Slf4j
 public abstract class FreemarkerExtGenerator implements ExtGenerator {

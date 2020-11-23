@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 
 /**
  * @author zhuyb
- * @date 2020/6/8 10:46
  * 重命名插件
  */
 @Slf4j

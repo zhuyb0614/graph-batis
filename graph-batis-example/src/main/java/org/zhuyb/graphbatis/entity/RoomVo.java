@@ -5,7 +5,6 @@ import lombok.experimental.Accessors;
 
 /**
  * @author zhuyb
- * @date 2020/4/25
  */
 @Data
 @Accessors(chain = true)

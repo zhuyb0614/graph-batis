@@ -12,7 +12,6 @@ import java.util.List;
 
 /**
  * @author zhuyb
- * @date 2020/6/8 10:46
  * GraphQL生成器
  */
 @Slf4j

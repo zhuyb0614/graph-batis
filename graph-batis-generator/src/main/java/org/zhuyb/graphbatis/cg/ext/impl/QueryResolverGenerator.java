@@ -11,7 +11,6 @@ import java.io.IOException;
 
 /**
  * @author zhuyb
- * @date 2020/11/18
  */
 @Slf4j
 public class QueryResolverGenerator extends FreemarkerExtGenerator implements ExtGenerator {
