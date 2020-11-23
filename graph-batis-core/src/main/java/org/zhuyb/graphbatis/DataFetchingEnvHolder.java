@@ -5,7 +5,6 @@ import lombok.experimental.UtilityClass;
 
 /**
  * @author zhuyb
- * @date 2020/5/1
  */
 @UtilityClass
 public class DataFetchingEnvHolder {

@@ -15,7 +15,6 @@ import java.util.Properties;
 
 /**
  * @author zhuyb
- * @date 2020/5/1
  * @see CachingExecutor#query(MappedStatement, Object, RowBounds, ResultHandler)
  * 查看4参的query发现,他调用6参的query是内部this调用的.
  * 所以6参query没办法被Interceptor拦截.
