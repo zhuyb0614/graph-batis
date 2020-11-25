@@ -1,0 +1,4 @@
+type Room {
+    roomId: Int
+    roomName: String
+}

@@ -9,3 +9,21 @@ type Student {
  roomId: Int
  studentName: String
 }
+type Room {
+ roomId: Int
+ roomName: String
+}
+type Subject {
+ subjectId: Int
+ subjectName: String
+}
+type Teacher {
+ teacherId: Int
+ teacherName: String
+ subjectId: Int
+}
+type TeacherRoom {
+ teacherRoomId: Int
+ teacherId: Int
+ roomId: Int
+}

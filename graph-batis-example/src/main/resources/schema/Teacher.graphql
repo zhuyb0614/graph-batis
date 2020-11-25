@@ -1,0 +1,5 @@
+type Teacher {
+    teacherId: Int
+    teacherName: String
+    subjectId: Int
+}

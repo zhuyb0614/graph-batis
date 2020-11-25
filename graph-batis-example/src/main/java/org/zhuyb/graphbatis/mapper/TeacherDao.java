@@ -1,35 +1,35 @@
 package org.zhuyb.graphbatis.mapper;
 
-import org.zhuyb.graphbatis.entity.Room;
+import org.zhuyb.graphbatis.entity.Teacher;
 
-public interface RoomDao {
+public interface TeacherDao {
     /**
      * @mbg.generated 2020-11-25
      */
-    int deleteById(Integer roomId);
-
-    /**
-     * @mbg.generated 2020-11-25
-     */
-    int insert(Room record);
+    int deleteById(Integer teacherId);
 
     /**
      * @mbg.generated 2020-11-25
      */
-    int insertSelective(Room record);
+    int insert(Teacher record);
 
     /**
      * @mbg.generated 2020-11-25
      */
-    Room selectById(Integer roomId);
+    int insertSelective(Teacher record);
 
     /**
      * @mbg.generated 2020-11-25
      */
-    int updateByIdSelective(Room record);
+    Teacher selectById(Integer teacherId);
 
     /**
      * @mbg.generated 2020-11-25
      */
-    int updateById(Room record);
+    int updateByIdSelective(Teacher record);
+
+    /**
+     * @mbg.generated 2020-11-25
+     */
+    int updateById(Teacher record);
 }
