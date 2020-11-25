@@ -1,4 +1,0 @@
-type Subject {
-    subjectId: Int
-    subjectName: String
-}

@@ -180,4 +180,19 @@
         subject_id = #{subjectId,jdbcType=INTEGER}
         where teacher_id = #{teacherId,jdbcType=INTEGER}
     </update>
+    <select id="findAll" resultType="org.zhuyb.graphbatis.entity.Teacher">
+        SELECT st.student_name,
+               st.student_id,
+               su.subject_id,
+               su.subject_name,
+               t.teacher_id,
+               t.teacher_name,
+               r.room_id,
+               r.room_name
+        FROM t_room AS r
+                 JOIN t_teacher_room AS tr ON tr.room_id = r.room_id
+                 JOIN t_student AS st ON st.room_id = r.room_id
+                 JOIN t_teacher AS t ON t.teacher_id = tr.teacher_id
+                 JOIN t_subject AS su ON su.subject_id = t.subject_id
+    </select>
 </mapper>

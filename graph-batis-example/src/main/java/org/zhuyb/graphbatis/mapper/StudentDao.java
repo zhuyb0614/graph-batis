@@ -2,6 +2,8 @@ package org.zhuyb.graphbatis.mapper;
 
 import org.zhuyb.graphbatis.entity.Student;
 
+import java.util.List;
+
 public interface StudentDao {
     /**
      * @mbg.generated 2020-11-25
@@ -32,4 +34,6 @@ public interface StudentDao {
      * @mbg.generated 2020-11-25
      */
     int updateById(Student record);
+
+    List<Student> findAll();
 }

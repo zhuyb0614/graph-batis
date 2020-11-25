@@ -1,5 +1,0 @@
-type TeacherRoom {
-    teacherRoomId: Int
-    teacherId: Int
-    roomId: Int
-}

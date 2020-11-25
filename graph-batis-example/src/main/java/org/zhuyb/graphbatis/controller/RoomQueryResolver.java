@@ -5,26 +5,22 @@ import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.zhuyb.graphbatis.DataFetchingEnvHolder;
-import org.zhuyb.graphbatis.entity.RoomVo;
-import org.zhuyb.graphbatis.service.RoomService;
+import org.zhuyb.graphbatis.entity.Room;
+import org.zhuyb.graphbatis.mapper.RoomDao;
 
 import java.util.List;
 
 @Component
 public class RoomQueryResolver implements GraphQLQueryResolver {
     @Autowired
-    private RoomService roomService;
+    private RoomDao roomDao;
 
-    public List<RoomVo> findRoomVos(
-            Integer studentId,
-            Integer teacherId,
+    public List<Room> findRooms(
             DataFetchingEnvironment dataFetchingEnvironment
     ) {
-        RoomVo roomVo = new RoomVo();
-        roomVo.setStudentId(studentId);
-        roomVo.setTeacherId(teacherId);
         DataFetchingEnvHolder.put(dataFetchingEnvironment);
-        List<RoomVo> roomVos = roomService.findRoomVos(roomVo);
-        return roomVos;
+        return roomDao.findAll();
     }
+
+
 }

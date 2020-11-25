@@ -1,8 +1,6 @@
 package org.zhuyb.graphbatis.mapper;
 
-import org.apache.ibatis.annotations.Param;
 import org.zhuyb.graphbatis.entity.Room;
-import org.zhuyb.graphbatis.entity.RoomVo;
 
 import java.util.List;
 
@@ -37,5 +35,5 @@ public interface RoomDao {
      */
     int updateById(Room record);
 
-    List<RoomVo> findRoomVos(@Param("rv") RoomVo roomVo);
+    List<Room> findAll();
 }
