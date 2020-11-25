@@ -113,9 +113,10 @@ public class CleanSqlInterceptor implements Interceptor {
         //清理关联表
         Tables tables = getCleanTables(selectBody, cleanTableAlias, cleanSelectTablesAlias);
         selectBody.setFromItem(tables.getFromItem());
-        selectBody.setJoins(tables.getJoins());
+        List<Join> joins = tables.getJoins();
+        selectBody.setJoins(joins);
         String cleanSql = selectBody.toString();
-        if (originSql.equals(cleanSql)) {
+        if (joins == null || joins.isEmpty() || originSql.equals(cleanSql)) {
             return cleanSql;
         } else {
             logger.debug("loop times {} clean sql ==> {}", loopTimes + 1, cleanSql);
