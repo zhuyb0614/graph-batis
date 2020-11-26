@@ -33,6 +33,26 @@ public class Teacher implements Serializable {
      */
     private Integer subjectId;
 
+    private Subject subject;
+
+    private Room room;
+
+    public Subject getSubject() {
+        return subject;
+    }
+
+    public void setSubject(Subject subject) {
+        this.subject = subject;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
     /**
      * @return teacher_id
      */
