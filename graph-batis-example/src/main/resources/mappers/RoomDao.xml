@@ -4,6 +4,23 @@
     <resultMap id="BaseResultMap" type="org.zhuyb.graphbatis.entity.Room">
         <id column="room_id" jdbcType="INTEGER" property="roomId"/>
         <result column="room_name" jdbcType="VARCHAR" property="roomName"/>
+        <collection property="students" ofType="org.zhuyb.graphbatis.entity.Student">
+            <id column="student_id" jdbcType="INTEGER" property="studentId"/>
+            <result column="room_id" jdbcType="INTEGER" property="roomId"/>
+            <result column="student_name" jdbcType="VARCHAR" property="studentName"/>
+        </collection>
+        <collection property="subjects" ofType="org.zhuyb.graphbatis.entity.Subject">
+            <id column="subject_id" jdbcType="INTEGER" property="subjectId"/>
+            <result column="subject_name" jdbcType="VARCHAR" property="subjectName"/>
+        </collection>
+        <collection property="teachers" ofType="org.zhuyb.graphbatis.entity.Teacher">
+            <id column="teacher_id" jdbcType="INTEGER" property="teacherId"/>
+            <result column="teacher_name" jdbcType="VARCHAR" property="teacherName"/>
+            <association property="subject" javaType="org.zhuyb.graphbatis.entity.Subject">
+                <id column="subject_id" jdbcType="INTEGER" property="subjectId"/>
+                <result column="subject_name" jdbcType="VARCHAR" property="subjectName"/>
+            </association>
+        </collection>
     </resultMap>
     <sql id="Base_Column_List">
         t_room.room_id as t_room_room_id, t_room.room_name as t_room_room_name
@@ -53,7 +70,7 @@
         WHERE room_id = #{roomId,jdbcType=INTEGER}
     </update>
 
-    <select id="findAll" resultType="org.zhuyb.graphbatis.entity.Room">
+    <select id="findAll" resultMap="BaseResultMap">
         SELECT st.student_name,
                st.student_id,
                su.subject_id,

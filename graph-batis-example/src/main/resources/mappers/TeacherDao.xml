@@ -19,6 +19,10 @@
         <id column="teacher_id" jdbcType="INTEGER" property="teacherId"/>
         <result column="teacher_name" jdbcType="VARCHAR" property="teacherName"/>
         <result column="subject_id" jdbcType="INTEGER" property="subjectId"/>
+        <collection property="rooms" ofType="org.zhuyb.graphbatis.entity.Room">
+            <id column="room_id" jdbcType="INTEGER" property="roomId"/>
+            <result column="room_name" jdbcType="VARCHAR" property="roomName"/>
+        </collection>
     </resultMap>
     <sql id="Base_Column_List">
         <!--
@@ -180,7 +184,7 @@
         subject_id = #{subjectId,jdbcType=INTEGER}
         where teacher_id = #{teacherId,jdbcType=INTEGER}
     </update>
-    <select id="findAll" resultType="org.zhuyb.graphbatis.entity.Teacher">
+    <select id="findAll" resultMap="BaseResultMap">
         SELECT st.student_name,
                st.student_id,
                su.subject_id,

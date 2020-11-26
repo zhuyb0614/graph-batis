@@ -34,6 +34,16 @@ public class Room implements Serializable {
 
     private List<Teacher> teachers;
 
+    private List<Subject> subjects;
+
+    public List<Subject> getSubjects() {
+        return subjects;
+    }
+
+    public void setSubjects(List<Subject> subjects) {
+        this.subjects = subjects;
+    }
+
     public List<Student> getStudents() {
         return students;
     }
