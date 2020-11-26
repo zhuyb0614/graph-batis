@@ -1,6 +1,8 @@
 package org.zhuyb.graphbatis.interceptor;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import graphql.language.Field;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
@@ -28,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.zhuyb.graphbatis.DataFetchingEnvHolder;
 import org.zhuyb.graphbatis.entity.Tables;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -49,10 +52,16 @@ public class CleanSqlInterceptor implements Interceptor {
     public static final int BOUND_SQL_INDEX = 5;
     public static final int MAPPED_STATEMENT_INDEX = 0;
     public static final int DEFAULT_MAX_LOOP_DEEP = -1;
+    public static final int DEFAULT_MAX_CACHE_SIZE = 1024;
+    public static final String CACHE_KEY_DELIMITER = "&";
+    public static final String D_S = "%d:%s";
+    private static Cache<String, String> cache;
+
     /**
      * 循环剔出层数,默认无限
      */
-    private int maxLoopDeep = DEFAULT_MAX_LOOP_DEEP;
+    private Integer maxLoopDeep = DEFAULT_MAX_LOOP_DEEP;
+    private Integer maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -85,22 +94,33 @@ public class CleanSqlInterceptor implements Interceptor {
         return getCleanSql(dataFetchingEnvironment, originSql, 0);
     }
 
+    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSQL, int loopTimes) throws JSQLParserException {
+        return getCleanSql(dataFetchingEnvironment, originSQL, null, 0);
+    }
+
     /**
      * 获取过滤后的SQL
      *
      * @param dataFetchingEnvironment
-     * @param originSql
+     * @param originSQL
      * @return
      * @throws JSQLParserException
      */
-    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSql, int loopTimes) throws JSQLParserException {
+    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSQL, String cacheKey, int loopTimes) throws JSQLParserException {
         if (maxLoopDeep != DEFAULT_MAX_LOOP_DEEP && loopTimes > maxLoopDeep) {
-            return originSql;
+            return originSQL;
         }
-        Select cleanSelectSql = (Select) CCJSqlParserUtil.parse(originSql);
-        PlainSelect selectBody = (PlainSelect) cleanSelectSql.getSelectBody();
         //获取所有查询字段
         Set<String> allGraphQLFieldNames = getAllGraphQLFieldNames(dataFetchingEnvironment);
+        if (cacheKey == null) {
+            cacheKey = String.format(D_S, originSQL.hashCode(), allGraphQLFieldNames.stream().sorted().collect(Collectors.joining(CACHE_KEY_DELIMITER)));
+        }
+        String cacheSQL = cache.getIfPresent(cacheKey);
+        if (cacheSQL != null) {
+            return cacheSQL;
+        }
+        Select cleanSelectSql = (Select) CCJSqlParserUtil.parse(originSQL);
+        PlainSelect selectBody = (PlainSelect) cleanSelectSql.getSelectBody();
         //获取查询字段用到的字段
         selectBody.setSelectItems(getCleanSelectItems(selectBody, allGraphQLFieldNames));
 
@@ -116,11 +136,12 @@ public class CleanSqlInterceptor implements Interceptor {
         List<Join> joins = tables.getJoins();
         selectBody.setJoins(joins);
         String cleanSql = selectBody.toString();
-        if (joins == null || joins.isEmpty() || originSql.equals(cleanSql)) {
+        if (joins == null || joins.isEmpty() || originSQL.equals(cleanSql)) {
+            cache.put(cacheKey, cleanSql);
             return cleanSql;
         } else {
             logger.debug("loop times {} clean sql ==> {}", loopTimes + 1, cleanSql);
-            return getCleanSql(dataFetchingEnvironment, cleanSql, loopTimes + 1);
+            return getCleanSql(dataFetchingEnvironment, cleanSql, cacheKey, loopTimes + 1);
         }
     }
 
@@ -474,6 +495,11 @@ public class CleanSqlInterceptor implements Interceptor {
             maxLoopDeep = Integer.valueOf(maxLoopDeepProp);
         }
         logger.info("properties {}", properties);
+        cache = CacheBuilder
+                .newBuilder()
+                .expireAfterWrite(Duration.ofMinutes(1))
+                .maximumSize(1024)
+                .build();
     }
 
 }

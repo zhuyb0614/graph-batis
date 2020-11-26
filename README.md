@@ -74,6 +74,7 @@ JOIN t_student AS st ON st.room_id = r.room_id
 
 - [x]  代码生成器提供
 - [x]  去除VO,使其符合GraphQL规范
+- [ ]  查询缓存
 - [ ]  中间表voyager
 - [ ]  分页
 - [ ]  复杂条件查询
