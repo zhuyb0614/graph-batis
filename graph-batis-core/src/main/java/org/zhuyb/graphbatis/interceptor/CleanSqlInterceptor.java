@@ -255,21 +255,23 @@ public class CleanSqlInterceptor implements Interceptor {
     private boolean isNeedFromItem(Set<Join> cleanJoinsNotSort, Table fromItem, Set<String> cleanTableAlias) {
         boolean needFromTable = false;
         String fromTableName = fromItem.getAlias().getName();
-        if (!cleanTableAlias.contains(fromTableName)) {
-            for (Join join : cleanJoinsNotSort) {
-                EqualsTo onExpression = (EqualsTo) join.getOnExpression();
-                Column leftExpression = (Column) onExpression.getLeftExpression();
-                Column rightExpression = (Column) onExpression.getRightExpression();
-                String leftTableName = leftExpression.getTable().getName();
-                String rightTableName = rightExpression.getTable().getName();
-                //只要是所有表,有关联到了主表
-                if (fromTableName.equals(rightTableName) || fromTableName.equals(leftTableName)) {
-                    needFromTable = true;
-                    break;
+        if (cleanJoinsNotSort.size() != 1 || cleanTableAlias.contains(fromTableName)) {
+            if (!cleanTableAlias.contains(fromTableName)) {
+                for (Join join : cleanJoinsNotSort) {
+                    EqualsTo onExpression = (EqualsTo) join.getOnExpression();
+                    Column leftExpression = (Column) onExpression.getLeftExpression();
+                    Column rightExpression = (Column) onExpression.getRightExpression();
+                    String leftTableName = leftExpression.getTable().getName();
+                    String rightTableName = rightExpression.getTable().getName();
+                    //只要是所有表,有关联到了主表
+                    if (fromTableName.equals(rightTableName) || fromTableName.equals(leftTableName)) {
+                        needFromTable = true;
+                        break;
+                    }
                 }
+            } else {
+                needFromTable = true;
             }
-        } else {
-            needFromTable = true;
         }
         return needFromTable;
     }
