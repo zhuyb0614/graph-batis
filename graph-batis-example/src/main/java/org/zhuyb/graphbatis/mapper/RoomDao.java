@@ -1,9 +1,11 @@
 package org.zhuyb.graphbatis.mapper;
 
+import org.springframework.stereotype.Repository;
 import org.zhuyb.graphbatis.entity.Room;
 
 import java.util.List;
 
+@Repository
 public interface RoomDao {
     /**
      * @mbg.generated 2020-11-25

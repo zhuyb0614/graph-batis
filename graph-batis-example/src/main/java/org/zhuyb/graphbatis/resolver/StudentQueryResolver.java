@@ -1,10 +1,9 @@
-package org.zhuyb.graphbatis.controller;
+package org.zhuyb.graphbatis.resolver;
 
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.zhuyb.graphbatis.DataFetchingEnvHolder;
 import org.zhuyb.graphbatis.entity.Student;
 import org.zhuyb.graphbatis.mapper.StudentDao;
 
@@ -18,7 +17,6 @@ public class StudentQueryResolver implements GraphQLQueryResolver {
     public List<Student> findStudents(
             DataFetchingEnvironment dataFetchingEnvironment
     ) {
-        DataFetchingEnvHolder.put(dataFetchingEnvironment);
         return studentDao.findAll();
     }
 

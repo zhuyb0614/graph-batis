@@ -82,7 +82,6 @@ public class CleanSqlInterceptor implements Interceptor {
                 args[BOUND_SQL_INDEX] = cleanBoundSql;
                 logger.debug("clean sql cost {}ms", System.currentTimeMillis() - startTime);
                 result = changedInvocation.proceed();
-                DataFetchingEnvHolder.remove();
             } else {
                 result = invocation.proceed();
             }

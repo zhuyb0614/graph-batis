@@ -1,9 +1,11 @@
 package org.zhuyb.graphbatis.mapper;
 
+import org.springframework.stereotype.Repository;
 import org.zhuyb.graphbatis.entity.Subject;
 
 import java.util.List;
 
+@Repository
 public interface SubjectDao {
     /**
      * @mbg.generated 2020-11-25
