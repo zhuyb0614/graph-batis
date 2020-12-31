@@ -1,4 +1,4 @@
-package org.zhuyb.graphbatis.util;
+package org.zhuyb.graphbatis.cleaner;
 
 import org.junit.Test;
 
@@ -10,6 +10,6 @@ public class SqlCleanerTest {
 
     @Test
     public void cleanSql() {
-        SqlCleaner sqlCleaner = new SqlCleanerImpl(1, 4096);
+        SqlCleaner sqlCleaner = new MybatisSqlCleanerImpl(1, 4096);
     }
 }

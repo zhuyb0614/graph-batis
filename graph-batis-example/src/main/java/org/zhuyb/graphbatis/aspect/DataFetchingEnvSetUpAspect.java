@@ -8,7 +8,9 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
-import org.zhuyb.graphbatis.DataFetchingEnvHolder;
+import org.zhuyb.graphbatis.FetchingDataHolder;
+import org.zhuyb.graphbatis.entity.FetchingData;
+import org.zhuyb.graphbatis.util.GraphQLTransformUtil;
 
 /**
  * @author zhuyb
@@ -29,7 +31,11 @@ public class DataFetchingEnvSetUpAspect {
         if (args != null && args.length > 0) {
             for (Object arg : args) {
                 if (arg instanceof DataFetchingEnvironment) {
-                    DataFetchingEnvHolder.put((DataFetchingEnvironment) arg);
+                    FetchingData fetchingData = new FetchingData();
+                    DataFetchingEnvironment dataFetchingEnvironment = (DataFetchingEnvironment) arg;
+                    fetchingData.setFieldNames(GraphQLTransformUtil.getAllGraphQLFieldNames(dataFetchingEnvironment));
+                    fetchingData.setArguments(dataFetchingEnvironment.getArguments());
+                    FetchingDataHolder.put(fetchingData);
                 }
             }
         }
@@ -37,6 +43,6 @@ public class DataFetchingEnvSetUpAspect {
 
     @After(value = "optionalDataFetchPoint()")
     public void envRemove(JoinPoint joinPoint) throws Throwable {
-        DataFetchingEnvHolder.remove();
+        FetchingDataHolder.remove();
     }
 }

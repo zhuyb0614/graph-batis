@@ -1,10 +1,5 @@
-package org.zhuyb.graphbatis.util;
+package org.zhuyb.graphbatis.cleaner;
 
-import com.google.common.base.CaseFormat;
-import graphql.language.Field;
-import graphql.language.Selection;
-import graphql.language.SelectionSet;
-import graphql.schema.DataFetchingEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
@@ -15,6 +10,7 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 import org.jetbrains.annotations.NotNull;
+import org.zhuyb.graphbatis.entity.FetchingData;
 import org.zhuyb.graphbatis.entity.Tables;
 
 import java.util.*;
@@ -23,42 +19,47 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class SqlCleanerImpl implements SqlCleaner {
+public class MybatisSqlCleanerImpl implements SqlCleaner {
     public static final String CACHE_KEY_DELIMITER = "&";
     public static final String D_S = "%d:%s";
     private Integer maxLoopDeep = -1;
     private Integer maxCacheSize = 1024;
     private Map<String, String> cache;
 
-    public SqlCleanerImpl(Integer maxLoopDeep, Integer maxCacheSize) {
+    public MybatisSqlCleanerImpl(Integer maxLoopDeep, Integer maxCacheSize) {
         this.maxLoopDeep = maxLoopDeep;
         this.maxCacheSize = maxCacheSize;
-        cache = new ConcurrentHashMap((int) (maxCacheSize / 0.75 + 1));
+        cache = new ConcurrentHashMap((int) (this.maxCacheSize / 0.75 + 1));
     }
 
     @Override
-    public String cleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSql) throws JSQLParserException {
-        return getCleanSql(dataFetchingEnvironment, originSql, 0);
+    public String cleanSql(FetchingData fetchingData, String originSql) {
+        try {
+            return getCleanSql(fetchingData, originSql, 0);
+        } catch (JSQLParserException e) {
+            log.error("parse sql error [==> {}]", originSql, e);
+            return originSql;
+        }
     }
 
-    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSQL, int loopTimes) throws JSQLParserException {
-        return getCleanSql(dataFetchingEnvironment, originSQL, null, loopTimes);
+    private String getCleanSql(FetchingData fetchingData, String originSQL, int loopTimes) throws JSQLParserException {
+        return getCleanSql(fetchingData, originSQL, null, loopTimes);
     }
 
     /**
      * 获取过滤后的SQL
      *
-     * @param dataFetchingEnvironment
+     * @param fetchingData
      * @param originSQL
      * @return
      * @throws JSQLParserException
      */
-    private String getCleanSql(DataFetchingEnvironment dataFetchingEnvironment, String originSQL, String cacheKey, int loopTimes) throws JSQLParserException {
+    private String getCleanSql(FetchingData fetchingData, String originSQL, String cacheKey, int loopTimes) throws JSQLParserException {
         if (maxLoopDeep != -1 && loopTimes > maxLoopDeep) {
             return originSQL;
         }
         //获取所有查询字段
-        Set<String> allGraphQLFieldNames = getAllGraphQLFieldNames(dataFetchingEnvironment);
+        Set<String> allGraphQLFieldNames = fetchingData.getFieldNames();
         if (cacheKey == null) {
             cacheKey = String.format(D_S, originSQL.hashCode(), allGraphQLFieldNames.stream().sorted().collect(Collectors.joining(CACHE_KEY_DELIMITER)));
         }
@@ -88,7 +89,7 @@ public class SqlCleanerImpl implements SqlCleaner {
             return cleanSql;
         } else {
             log.debug("loop times {} clean sql ==> {}", loopTimes + 1, cleanSql);
-            return getCleanSql(dataFetchingEnvironment, cleanSql, cacheKey, loopTimes + 1);
+            return getCleanSql(fetchingData, cleanSql, cacheKey, loopTimes + 1);
         }
     }
 
@@ -362,71 +363,4 @@ public class SqlCleanerImpl implements SqlCleaner {
         }
     }
 
-    /**
-     * 获取GraphQL传入的参数名
-     *
-     * @param dataFetchingEnvironment
-     * @return
-     */
-    private Set<String> getAllGraphQLArgumentsNames(DataFetchingEnvironment dataFetchingEnvironment) {
-        Set<String> allGraphQLParamNames = null;
-        Map<String, Object> arguments = dataFetchingEnvironment.getArguments();
-        if (arguments != null) {
-            allGraphQLParamNames = arguments.keySet()
-                    .stream()
-                    .map(s -> CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE).convert(s))
-                    .collect(Collectors.toSet());
-        }
-        return allGraphQLParamNames;
-    }
-
-    /**
-     * 获取GraphQL查询的字段名
-     *
-     * @param dataFetchingEnvironment
-     * @return
-     */
-    private Set<String> getAllGraphQLFieldNames(DataFetchingEnvironment dataFetchingEnvironment) {
-        Set<String> fieldNames = null;
-        List<Field> fields = dataFetchingEnvironment.getFields();
-        if (fields != null) {
-            fieldNames = new HashSet<>();
-            for (Field field : fields) {
-                getAllGraphQLFieldNames(fieldNames, field);
-            }
-            if (fieldNames != null) {
-                fieldNames = fieldNames
-                        .stream()
-                        .map(s -> CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE).convert(s))
-                        .collect(Collectors.toSet());
-                log.debug("all graphQL field names {}", fieldNames);
-            }
-        }
-        if (fieldNames == null || fieldNames.isEmpty()) {
-            log.debug("all graphQL field names is empty");
-        }
-        return fieldNames;
-    }
-
-    /**
-     * 递归获取GraphQL所有查询的字段名
-     *
-     * @param fieldNames
-     * @param field
-     */
-    private void getAllGraphQLFieldNames(Set<String> fieldNames, Field field) {
-        if (field != null) {
-            SelectionSet selectionSet = field.getSelectionSet();
-            if (selectionSet != null) {
-                List<Selection> selections = selectionSet.getSelections();
-                if (selections != null) {
-                    for (Selection selection : selections) {
-                        Field subField = (Field) selection;
-                        fieldNames.add(subField.getName());
-                        getAllGraphQLFieldNames(fieldNames, subField);
-                    }
-                }
-            }
-        }
-    }
 }

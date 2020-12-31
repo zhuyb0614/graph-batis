@@ -1,6 +1,5 @@
 package org.zhuyb.graphbatis.interceptor;
 
-import graphql.schema.DataFetchingEnvironment;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
@@ -12,9 +11,10 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.zhuyb.graphbatis.DataFetchingEnvHolder;
-import org.zhuyb.graphbatis.util.SqlCleaner;
-import org.zhuyb.graphbatis.util.SqlCleanerImpl;
+import org.zhuyb.graphbatis.FetchingDataHolder;
+import org.zhuyb.graphbatis.cleaner.MybatisSqlCleanerImpl;
+import org.zhuyb.graphbatis.cleaner.SqlCleaner;
+import org.zhuyb.graphbatis.entity.FetchingData;
 
 import java.util.Properties;
 
@@ -44,12 +44,12 @@ public class CleanSqlInterceptor implements Interceptor {
             result = invocation.proceed();
         } else {
             long startTime = System.currentTimeMillis();
-            DataFetchingEnvironment dataFetchingEnvironment = DataFetchingEnvHolder.get();
-            if (dataFetchingEnvironment != null) {
+            FetchingData fetchingData = FetchingDataHolder.get();
+            if (fetchingData != null) {
                 Invocation changedInvocation = new Invocation(invocation.getTarget(), invocation.getMethod(), args);
                 BoundSql originBoundSql = (BoundSql) args[BOUND_SQL_INDEX];
                 String originSql = originBoundSql.getSql();
-                String cleanSql = sqlCleaner.cleanSql(dataFetchingEnvironment, originSql);
+                String cleanSql = sqlCleaner.cleanSql(fetchingData, originSql);
                 BoundSql cleanBoundSql = new BoundSql(mappedStatement.getConfiguration(), cleanSql, originBoundSql.getParameterMappings(), originBoundSql.getParameterObject());
                 args[BOUND_SQL_INDEX] = cleanBoundSql;
                 logger.debug("clean sql cost {}ms", System.currentTimeMillis() - startTime);
@@ -72,7 +72,7 @@ public class CleanSqlInterceptor implements Interceptor {
     public void setProperties(Properties properties) {
         String maxLoopDeepProp = properties.getProperty("maxLoopDeep");
         if (StringUtils.isNumeric(maxLoopDeepProp)) {
-            sqlCleaner = new SqlCleanerImpl(Integer.valueOf(maxLoopDeepProp), 4096);
+            sqlCleaner = new MybatisSqlCleanerImpl(Integer.valueOf(maxLoopDeepProp), 4096);
         }
         logger.info("properties {}", properties);
     }
