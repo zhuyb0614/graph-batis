@@ -1,6 +1,6 @@
 package org.zhuyb.graphbatis.interceptor;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.SneakyThrows;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -12,7 +12,6 @@ import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zhuyb.graphbatis.FetchingDataHolder;
-import org.zhuyb.graphbatis.cleaner.MybatisSqlCleanerImpl;
 import org.zhuyb.graphbatis.cleaner.SqlCleaner;
 import org.zhuyb.graphbatis.entity.FetchingData;
 
@@ -68,12 +67,12 @@ public class CleanSqlInterceptor implements Interceptor {
         return Plugin.wrap(target, this);
     }
 
+    @SneakyThrows
     @Override
     public void setProperties(Properties properties) {
-        String maxLoopDeepProp = properties.getProperty("maxLoopDeep");
-        if (StringUtils.isNumeric(maxLoopDeepProp)) {
-            sqlCleaner = new MybatisSqlCleanerImpl(Integer.valueOf(maxLoopDeepProp), 4096);
-        }
+        String cleanerClass = properties.getProperty("cleaner");
+        sqlCleaner = (SqlCleaner) Class.forName(cleanerClass).newInstance();
+        sqlCleaner.setUp(properties);
         logger.info("properties {}", properties);
     }
 

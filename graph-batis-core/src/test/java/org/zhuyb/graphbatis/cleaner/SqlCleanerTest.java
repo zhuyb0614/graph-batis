@@ -10,6 +10,6 @@ public class SqlCleanerTest {
 
     @Test
     public void cleanSql() {
-        SqlCleaner sqlCleaner = new MybatisSqlCleanerImpl(1, 4096);
+        SqlCleaner sqlCleaner = new MybatisSqlCleanerImpl();
     }
 }

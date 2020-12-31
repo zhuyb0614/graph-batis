@@ -9,6 +9,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.zhuyb.graphbatis.entity.FetchingData;
 import org.zhuyb.graphbatis.entity.Tables;
@@ -26,12 +27,6 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
     private Integer maxCacheSize = 1024;
     private Map<String, String> cache;
 
-    public MybatisSqlCleanerImpl(Integer maxLoopDeep, Integer maxCacheSize) {
-        this.maxLoopDeep = maxLoopDeep;
-        this.maxCacheSize = maxCacheSize;
-        cache = new ConcurrentHashMap((int) (this.maxCacheSize / 0.75 + 1));
-    }
-
     @Override
     public String cleanSql(FetchingData fetchingData, String originSql) {
         try {
@@ -40,6 +35,19 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
             log.error("parse sql error [==> {}]", originSql, e);
             return originSql;
         }
+    }
+
+    @Override
+    public void setUp(Properties properties) {
+        String maxLoopDeepProp = properties.getProperty("maxLoopDeep");
+        String maxCacheSize = properties.getProperty("maxCacheSize");
+        if (StringUtils.isNumeric(maxLoopDeepProp)) {
+            this.maxLoopDeep = Integer.valueOf(maxLoopDeepProp);
+        }
+        if (StringUtils.isNumeric(maxCacheSize)) {
+            this.maxCacheSize = Integer.valueOf(maxCacheSize);
+        }
+        cache = new ConcurrentHashMap((int) (this.maxCacheSize / 0.75 + 1));
     }
 
     private String getCleanSql(FetchingData fetchingData, String originSQL, int loopTimes) throws JSQLParserException {

@@ -14,6 +14,14 @@ public class RoomQueryResolver implements GraphQLQueryResolver {
     @Autowired
     private RoomDao roomDao;
 
+    /**
+     * 参数必须定义,虽然dataFetchingEnvironment里已经持有了这些参数
+     *
+     * @param roomId
+     * @param teachId
+     * @param dataFetchingEnvironment
+     * @return
+     */
     public List<Room> findRooms(
             Integer roomId,
             Integer teachId,
