@@ -74,9 +74,11 @@ JOIN t_student AS st ON st.room_id = r.room_id
 
 - [x]  代码生成器提供
 - [x]  去除VO,使其符合GraphQL规范
-- [ ]  查询缓存
+- [x]  查询缓存
+- [x]  向上抽取抽象,使其通用化不局限GraphQL
+- [ ]  接入JOOQ
+- [ ]  接入Hibernate
 - [ ]  中间表voyager
 - [ ]  分页
 - [ ]  复杂条件查询
-- [ ]  向上抽取抽象,使其通用化不局限GraphQL
 - [ ]  提供Client

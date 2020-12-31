@@ -55,17 +55,19 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
      * @throws JSQLParserException
      */
     private String getCleanSql(FetchingData fetchingData, String originSQL, String cacheKey, int loopTimes) throws JSQLParserException {
-        if (maxLoopDeep != -1 && loopTimes > maxLoopDeep) {
-            return originSQL;
-        }
         //获取所有查询字段
         Set<String> allGraphQLFieldNames = fetchingData.getFieldNames();
-        if (cacheKey == null) {
-            cacheKey = String.format(D_S, originSQL.hashCode(), allGraphQLFieldNames.stream().sorted().collect(Collectors.joining(CACHE_KEY_DELIMITER)));
-        }
-        String cacheSQL = cache.get(cacheKey);
-        if (cacheSQL != null) {
-            return cacheSQL;
+        if (loopTimes == 0) {
+            if (cacheKey == null) {
+                cacheKey = String.format(D_S, originSQL.hashCode(), allGraphQLFieldNames.stream().sorted().collect(Collectors.joining(CACHE_KEY_DELIMITER)));
+            }
+            String cacheSQL = cache.get(cacheKey);
+            if (cacheSQL != null) {
+                return cacheSQL;
+            }
+        } else if (maxLoopDeep != -1 && loopTimes > maxLoopDeep) {
+            log.warn("loop times {} break", loopTimes);
+            return originSQL;
         }
         Select cleanSelectSql = (Select) CCJSqlParserUtil.parse(originSQL);
         PlainSelect selectBody = (PlainSelect) cleanSelectSql.getSelectBody();
