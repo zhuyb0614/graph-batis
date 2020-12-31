@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 import org.zhuyb.graphbatis.entity.Room;
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface RoomDao {
@@ -37,5 +38,5 @@ public interface RoomDao {
      */
     int updateById(Room record);
 
-    List<Room> findAll();
+    List<Room> findAll(Map<String, Object> arguments);
 }

@@ -15,9 +15,11 @@ public class RoomQueryResolver implements GraphQLQueryResolver {
     private RoomDao roomDao;
 
     public List<Room> findRooms(
+            Integer roomId,
+            Integer teachId,
             DataFetchingEnvironment dataFetchingEnvironment
     ) {
-        return roomDao.findAll();
+        return roomDao.findAll(dataFetchingEnvironment.getArguments());
     }
 
 
