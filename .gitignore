@@ -30,3 +30,4 @@ build/
 ### VS Code ###
 .vscode/
 /my-graphql-java-tools/
+*.log
