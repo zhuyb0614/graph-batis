@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 
 /**
  * @author zhuyb
@@ -21,7 +22,7 @@ import java.io.Writer;
 public abstract class FreemarkerExtGenerator implements ExtGenerator {
     private String templateDirPath = new File("./src/main/resources/ftl").getAbsolutePath();
 
-    protected void writFile(Template template, Object dataModel, String fileName) {
+    protected void writFile(Template template, Map<String, Object> dataModel, String fileName) {
         Writer out = null;
         try {
             out = new FileWriter(fileName);

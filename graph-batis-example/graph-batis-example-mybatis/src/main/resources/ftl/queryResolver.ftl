@@ -1,14 +1,14 @@
-package org.zhuyb.graphbatis.controller;
+package ${package};
 
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.zhuyb.graphbatis.entity.${tableConfiguration.domainObjectName};
-import org.zhuyb.graphbatis.mapper.${tableConfiguration.domainObjectName}Dao;
+import org.zhuyb.graphbatis.entity.${it.tableConfiguration.domainObjectName};
+import org.zhuyb.graphbatis.mapper.${it.tableConfiguration.domainObjectName}Dao;
 
 @Component
-public class ${tableConfiguration.domainObjectName}QueryResolver implements GraphQLQueryResolver {
+public class ${it.tableConfiguration.domainObjectName}QueryResolver implements GraphQLQueryResolver {
 @Autowired
-private ${tableConfiguration.domainObjectName}Dao ${tableConfiguration.domainObjectName?uncap_first}Dao;
+private ${it.tableConfiguration.domainObjectName}Dao ${it.tableConfiguration.domainObjectName?uncap_first}Dao;
 }
