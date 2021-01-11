@@ -1,6 +1,0 @@
-type Query {
-  findRooms(roomId:Int,teacherId:Int): [Room],
-  findStudents: [Student],
-  findTeachers: [Teacher],
-  findSubjects: [Subject]
-}

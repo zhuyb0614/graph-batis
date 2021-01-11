@@ -2,6 +2,8 @@ type Teacher {
   teacherId: Int
   teacherName: String
   subjectId: Int
-  rooms: [Room]
+  rooms: [
+    Room
+  ]
   subject: Subject
 }
