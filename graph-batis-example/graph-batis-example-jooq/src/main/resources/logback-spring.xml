@@ -143,7 +143,8 @@
     https://docs.spring.io/spring-boot/docs/2.1.18.RELEASE/reference/html/boot-features-logging.html#_profile_specific_configuration
      -->
     <springProfile name="!prod">
-        <root level="DEBUG">     <!--默认日志级别为info-->
+        <logger name="org.zhuyb.graphbatis" level="debug"/>
+        <root level="info">     <!--默认日志级别为info-->
             <appender-ref ref="stdout"/>    <!--输出控制台-->
             <appender-ref ref="asyncInfoAppender"/>     <!--打印到info日志文件-->
             <appender-ref ref="asyncErrorAppender"/>    <!--打印到error日志文件-->

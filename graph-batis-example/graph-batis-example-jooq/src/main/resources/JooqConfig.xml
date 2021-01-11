@@ -3,7 +3,7 @@
     <jdbc>
         <driver>com.mysql.cj.jdbc.Driver</driver>
         <!-- 配置数据库地址 -->
-        <url>jdbc:mysql://127.0.0.1:3306/graph-batis-test?serverTimezone=Asia/Shanghai</url>
+        <url>jdbc:mysql://127.0.0.1:3306/graph-batis-jooq?serverTimezone=Asia/Shanghai</url>
         <!-- 配置数据库用户名-->
         <user>root</user>
         <!-- 配置数据库密码-->
@@ -17,7 +17,7 @@
             <includes>.*</includes>
             <excludes>flyway_schema_history</excludes>
             <!--数据库名称-->
-            <inputSchema>graph-batis-test</inputSchema>
+            <inputSchema>graph-batis-jooq</inputSchema>
             <outputSchema></outputSchema>
         </database>
 

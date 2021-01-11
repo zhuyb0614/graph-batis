@@ -21,7 +21,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `t_room`;
 CREATE TABLE `t_room`
 (
-    `room_id`   int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `room_id`   int(11) NOT NULL AUTO_INCREMENT,
     `room_name` varchar(50) DEFAULT NULL,
     PRIMARY KEY (`room_id`)
 ) ENGINE = InnoDB
@@ -44,7 +44,7 @@ VALUES ('3', '高二一班');
 DROP TABLE IF EXISTS `t_student`;
 CREATE TABLE `t_student`
 (
-    `student_id`   int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `student_id`   int(11) NOT NULL AUTO_INCREMENT,
     `room_id`      int(11)     DEFAULT NULL,
     `student_name` varchar(50) DEFAULT NULL,
     PRIMARY KEY (`student_id`)
@@ -72,7 +72,7 @@ VALUES ('5', '2', '孙小七');
 DROP TABLE IF EXISTS `t_subject`;
 CREATE TABLE `t_subject`
 (
-    `subject_id`   int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `subject_id`   int(11) NOT NULL AUTO_INCREMENT,
     `subject_name` varchar(50) DEFAULT NULL,
     PRIMARY KEY (`subject_id`)
 ) ENGINE = InnoDB
@@ -93,7 +93,7 @@ VALUES ('2', '政治');
 DROP TABLE IF EXISTS `t_teacher`;
 CREATE TABLE `t_teacher`
 (
-    `teacher_id`   int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `teacher_id`   int(11) NOT NULL AUTO_INCREMENT,
     `teacher_name` varchar(50) DEFAULT NULL,
     `subject_id`   int(11)     DEFAULT NULL,
     PRIMARY KEY (`teacher_id`)
@@ -119,7 +119,7 @@ VALUES ('4', '老沙', '2');
 DROP TABLE IF EXISTS `t_teacher_room`;
 CREATE TABLE `t_teacher_room`
 (
-    `teacher_room_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `teacher_room_id` int(11) NOT NULL AUTO_INCREMENT,
     `teacher_id`      int(11) DEFAULT NULL,
     `room_id`         int(11) DEFAULT NULL,
     PRIMARY KEY (`teacher_room_id`)
