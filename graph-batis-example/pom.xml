@@ -14,5 +14,6 @@
     <modules>
         <module>graph-batis-example-core</module>
         <module>graph-batis-example-mybatis</module>
+        <module>graph-batis-example-jooq</module>
     </modules>
 </project>

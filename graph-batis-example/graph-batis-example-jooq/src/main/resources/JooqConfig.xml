@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
+    <jdbc>
+        <driver>com.mysql.cj.jdbc.Driver</driver>
+        <!-- 配置数据库地址 -->
+        <url>jdbc:mysql://127.0.0.1:3306/graph-batis-test?serverTimezone=Asia/Shanghai</url>
+        <!-- 配置数据库用户名-->
+        <user>root</user>
+        <!-- 配置数据库密码-->
+        <password>123456</password>
+    </jdbc>
+    <!-- 代码生成器 -->
+    <generator>
+        <database>
+            <name>org.jooq.meta.mysql.MySQLDatabase</name>
+            <!--include和exclude用于控制为数据库中哪些表生成代码-->
+            <includes>.*</includes>
+            <excludes>flyway_schema_history</excludes>
+            <!--数据库名称-->
+            <inputSchema>graph-batis-test</inputSchema>
+            <outputSchema></outputSchema>
+        </database>
+
+        <generate>
+            <!--是否生成dao和pojo-->
+            <daos>true</daos>
+            <pojos>true</pojos>
+            <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>
+            <!--是否把数据库时间类型映射到java 8时间类型-->
+            <javaTimeTypes>true</javaTimeTypes>
+            <!--是否在生成的代码中添加spring注释-->
+            <!--这里需要注意的是，当为false生成的dao层文件下没有spring注解，
+            之前的代码会被覆盖，导致dao层不可用 -->
+            <springAnnotations>true</springAnnotations>
+            <!--            JPA注解-->
+            <jpaAnnotations>false</jpaAnnotations>
+            <!--校验注解-->
+            <validationAnnotations>true</validationAnnotations>
+            <!--            流式setter-->
+            <fluentSetters>true</fluentSetters>
+            <varargSetters>true</varargSetters>
+            <indexes>true</indexes>
+            <!-- Warning!!! 不设置不能返回自增主键-->
+            <keys>true</keys>
+            <serializablePojos>false</serializablePojos>
+        </generate>
+
+        <target>
+            <!--生成代码文件的包名及放置目录-->
+            <packageName>org.zhuyb.graphbatis.jooq</packageName>
+            <directory>src/main/java</directory>
+        </target>
+        <strategy>
+            <name>org.jooq.codegen.DefaultGeneratorStrategy</name>
+        </strategy>
+    </generator>
+
+</configuration>
