@@ -31,6 +31,12 @@
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.github.jsqlparser</groupId>

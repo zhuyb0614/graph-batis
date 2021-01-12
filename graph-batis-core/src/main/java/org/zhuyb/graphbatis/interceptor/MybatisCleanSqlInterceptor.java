@@ -20,7 +20,7 @@ import java.util.Properties;
 /**
  * @author zhuyb
  * 如果没有
- * @see FourArgsInterceptor
+ * @see MybatisFourArgsInterceptor
  * 该interceptor无法生效
  */
 @Intercepts(
@@ -28,12 +28,13 @@ import java.util.Properties;
                 @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
         }
 )
-public class CleanSqlInterceptor implements Interceptor {
+public class MybatisCleanSqlInterceptor implements Interceptor {
 
-    public static final Logger logger = LoggerFactory.getLogger(CleanSqlInterceptor.class);
+    public static final Logger logger = LoggerFactory.getLogger(MybatisCleanSqlInterceptor.class);
     public static final int BOUND_SQL_INDEX = 5;
     public static final int MAPPED_STATEMENT_INDEX = 0;
     private SqlCleaner sqlCleaner;
+
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
         Object result;

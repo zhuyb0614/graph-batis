@@ -6,12 +6,12 @@
         <setting name="mapUnderscoreToCamelCase" value="true"/>
     </settings>
     <plugins>
-        <plugin interceptor="org.zhuyb.graphbatis.interceptor.CleanSqlInterceptor">
+        <plugin interceptor="org.zhuyb.graphbatis.interceptor.MybatisCleanSqlInterceptor">
             <property name="dialect" value="mysql"/>
             <property name="maxLoopDeep" value="1"/>
             <property name="cleaner" value="org.zhuyb.graphbatis.cleaner.MybatisSqlCleanerImpl"/>
         </plugin>
         <!--想要6参query生效必须将下面这个放到最后-->
-        <plugin interceptor="org.zhuyb.graphbatis.interceptor.FourArgsInterceptor"/>
+        <plugin interceptor="org.zhuyb.graphbatis.interceptor.MybatisFourArgsInterceptor"/>
     </plugins>
 </configuration>

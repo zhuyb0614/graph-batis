@@ -25,9 +25,9 @@ import java.util.Properties;
                 @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
         }
 )
-public class FourArgsInterceptor implements Interceptor {
+public class MybatisFourArgsInterceptor implements Interceptor {
 
-    public static final Logger logger = LoggerFactory.getLogger(FourArgsInterceptor.class);
+    public static final Logger logger = LoggerFactory.getLogger(MybatisFourArgsInterceptor.class);
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
