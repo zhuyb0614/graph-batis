@@ -103,6 +103,18 @@
         </dependency>
 
         <dependency>
+            <groupId>org.simpleflatmapper</groupId>
+            <artifactId>sfm-jooq</artifactId>
+            <version>8.2.3</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jooq</artifactId>
+                    <groupId>org.jooq</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
             <groupId>com.github.zhuyb0614</groupId>
             <artifactId>graph-batis-example-core</artifactId>
             <version>0.0.2-SNAPSHOT</version>

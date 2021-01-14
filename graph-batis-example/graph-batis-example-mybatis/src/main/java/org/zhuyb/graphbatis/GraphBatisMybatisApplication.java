@@ -6,10 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan(value = "org.zhuyb.graphbatis.mapper")
-public class GraphBatisApplication {
+public class GraphBatisMybatisApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GraphBatisApplication.class, args);
+        SpringApplication.run(GraphBatisMybatisApplication.class, args);
     }
 
 }
