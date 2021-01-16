@@ -4,15 +4,15 @@ import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.zhuyb.graphbatis.dq.DynamicQueryDao;
 import org.zhuyb.graphbatis.entity.Room;
-import org.zhuyb.graphbatis.mapper.RoomDao;
 
 import java.util.List;
 
 @Component
 public class RoomQueryResolver implements GraphQLQueryResolver {
     @Autowired
-    private RoomDao roomDao;
+    private DynamicQueryDao<Room> roomDynamicQueryDao;
 
     /**
      * 参数必须定义,虽然dataFetchingEnvironment里已经持有了这些参数
@@ -27,7 +27,7 @@ public class RoomQueryResolver implements GraphQLQueryResolver {
             Integer teachId,
             DataFetchingEnvironment dataFetchingEnvironment
     ) {
-        return roomDao.findAll(dataFetchingEnvironment.getArguments());
+        return roomDynamicQueryDao.findAll(dataFetchingEnvironment.getArguments());
     }
 
 

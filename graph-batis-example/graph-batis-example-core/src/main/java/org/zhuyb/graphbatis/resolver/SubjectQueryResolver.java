@@ -4,20 +4,20 @@ import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.zhuyb.graphbatis.dq.DynamicQueryDao;
 import org.zhuyb.graphbatis.entity.Subject;
-import org.zhuyb.graphbatis.mapper.SubjectDao;
 
 import java.util.List;
 
 @Component
 public class SubjectQueryResolver implements GraphQLQueryResolver {
     @Autowired
-    private SubjectDao subjectDao;
+    private DynamicQueryDao<Subject> subjectDynamicQueryDao;
 
     public List<Subject> findSubjects(
             DataFetchingEnvironment dataFetchingEnvironment
     ) {
-        return subjectDao.findAll();
+        return subjectDynamicQueryDao.findAll(dataFetchingEnvironment.getArguments());
     }
 
 }

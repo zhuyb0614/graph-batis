@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.*;
 import org.zhuyb.graphbatis.FetchingDataHolder;
 import org.zhuyb.graphbatis.dao.TableJoinCondition;
+import org.zhuyb.graphbatis.dq.DynamicQueryDao;
 import org.zhuyb.graphbatis.entity.FetchingData;
 
 import java.util.*;
@@ -13,8 +14,7 @@ import java.util.stream.Collectors;
 /**
  * @author zhuyb
  */
-
-public class JooqDynamicQuery<T> {
+public class JooqDynamicQuery<T> implements DynamicQueryDao<T> {
 
     private SelectFieldOrAsterisk[] selectFields;
     private TableJoinCondition[] tableJoinConditions;
@@ -34,6 +34,7 @@ public class JooqDynamicQuery<T> {
      * @param arguments
      * @return
      */
+    @Override
     public List<T> findAll(Map<String, Object> arguments) {
         FetchingData fetchingData = FetchingDataHolder.get();
         Set<String> fieldNames = fetchingData.getFieldNames();
