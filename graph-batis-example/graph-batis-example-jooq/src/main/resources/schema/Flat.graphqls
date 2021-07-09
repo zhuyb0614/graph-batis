@@ -1,0 +1,9 @@
+type Flat {
+  roomId: Int
+  studentId: Int
+  teacherId: Int
+  subjectId: Int
+  roomName: String
+  studentName: String
+  teacherName: String
+}

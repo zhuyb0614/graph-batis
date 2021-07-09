@@ -18,8 +18,13 @@ public class GraphBatisJooqApplication {
         try {
             String hostAddress = InetAddress.getLocalHost().getHostAddress();
             ConfigurableEnvironment env = applicationContext.getEnvironment();
-            log.info("Graphiql URL http://{}:{}{}/graphiql", hostAddress, env.getProperty("server.port"), env.getProperty("server.servlet.context-path"));
-            log.info("Voyager URL http://{}:{}{}/voyager", hostAddress, env.getProperty("server.port"), env.getProperty("server.servlet.context-path"));
+            String port = env.getProperty("server.port");
+            String contextPath = env.getProperty("server.servlet.context-path");
+            if (contextPath == null) {
+                contextPath = "";
+            }
+            log.info("Graphiql URL http://{}:{}{}/graphiql", hostAddress, port, contextPath);
+            log.info("Voyager URL http://{}:{}{}/voyager", hostAddress, port, contextPath);
         } catch (UnknownHostException e) {
             //do noting
         }

@@ -1,4 +1,5 @@
 type Query {
+  findFlat(roomId:Int,teacherId:Int,studentId:Int): [Flat],
   findRooms(roomId:Int,teacherId:Int): [Room],
   findStudents: [Student],
   findTeachers: [Teacher],

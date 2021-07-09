@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zhuyb.graphbatis.mapper.FlatDao">
+
+    <select id="findAll" resultType="org.zhuyb.graphbatis.entity.Flat">
+        SELECT st.student_name,
+        st.student_id,
+        su.subject_id,
+        su.subject_name,
+        t.teacher_id,
+        t.teacher_name,
+        r.room_id,
+        r.room_name
+        FROM t_room AS r
+        JOIN t_teacher_room AS tr ON tr.room_id = r.room_id
+        JOIN t_student AS st ON st.room_id = r.room_id
+        JOIN t_teacher AS t ON t.teacher_id = tr.teacher_id
+        JOIN t_subject AS su ON su.subject_id = t.subject_id
+        <where>
+            <if test="roomId != null">
+                and r.room_id = #{roomId}
+            </if>
+            <if test="teacherId != null">
+                and t.teacher_id = #{teacherId}
+            </if>
+            <if test="studentId != null">
+                and st.student_id = #{studentId}
+            </if>
+        </where>
+    </select>
+
+</mapper>
