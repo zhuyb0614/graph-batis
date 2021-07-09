@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<!-- 第一种mybatis逆向生成xml配置 -->
+<generatorConfiguration>
+    <properties resource="application.properties"/>
+    <context id="mysql" targetRuntime="MyBatis3">
+        <!-- 生成的pojo，将implements Serializable-->
+        <plugin type="org.mybatis.generator.plugins.SerializablePlugin"></plugin>
+        <plugin type="org.zhuyb.graphbatis.cg.GraphBatisPlugin">
+            <property name="ext-generators" value="QueryResolver,Schema"/>
+            <property name="resolverTargetPath" value="../graph-batis-example-core/src/main/java"/>
+            <property name="resolverTargetPackage" value="org.zhuyb.graphbatis.resolver"/>
+        </plugin>
+        <plugin type="org.zhuyb.graphbatis.cg.RenamePlugin">
+            <property name="mapperSuffix" value="Dao"/>
+            <property name="primaryKeyName" value="Id"/>
+        </plugin>
+        <commentGenerator type="org.zhuyb.graphbatis.cg.GraphBatisCommentGenerator"/>
+        <!-- 数据库链接URL、用户名、密码 -->
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
+                        connectionURL="${spring.datasource.url}"
+                        userId="${spring.datasource.username}"
+                        password="${spring.datasource.password}">
+        </jdbcConnection>
+        <!--
+        默认false，把JDBC DECIMAL 和 NUMERIC 类型解析为 Integer
+            true，把JDBC DECIMAL 和 NUMERIC 类型解析为java.math.BigDecimal
+        -->
+        <javaTypeResolver>
+            <property name="forceBigDecimals" value="true"/>
+        </javaTypeResolver>
+
+        <!--
+        生成model模型，对应的包路径，以及文件存放路径(targetProject)，targetProject可以指定具体的路径,如./src/main/java，
+        也可以使用“MAVEN”来自动生成，这样生成的代码会在target/generatord-source目录下
+        -->
+        <javaModelGenerator targetPackage="org.zhuyb.graphbatis.entity"
+                            targetProject="../graph-batis-example-core/src/main/java">
+            <property name="enableSubPackages" value="true"/>
+            <!-- 从数据库返回的值被清理前后的空格  -->
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <!--对应的mapper.xml文件  -->
+        <sqlMapGenerator targetPackage="mappers" targetProject="./src/main/resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <!-- 对应的Mapper接口类文件 -->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="org.zhuyb.graphbatis.mapper"
+                             targetProject="../graph-batis-example-core/src/main/java">
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+
+        <!-- 列出要生成代码的所有表，这里配置的是不生成Example文件 -->
+        <table tableName="t_student" domainObjectName="Student"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>
+        <table tableName="t_room" domainObjectName="Room"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>
+        <table tableName="t_subject" domainObjectName="Subject"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>
+        <table tableName="t_teacher" domainObjectName="Teacher"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>
+        <table tableName="t_teacher_room" domainObjectName="TeacherRoom"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>
+    </context>
+</generatorConfiguration>

@@ -1,7 +1,0 @@
-type Room {
-    roomId: Int
-    roomName: String
-    students: [Student]
-    teachers: [Teacher]
-    subjects: [Subject]
-}

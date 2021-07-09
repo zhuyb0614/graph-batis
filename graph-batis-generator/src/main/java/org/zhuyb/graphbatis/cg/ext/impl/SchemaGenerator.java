@@ -15,10 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author zhuyb
@@ -48,6 +45,11 @@ public class SchemaGenerator extends FreemarkerExtGenerator implements ExtGenera
         graphQLSchemaGenerated(introspectedTable);
     }
 
+    @Override
+    public void setUp(Properties properties) {
+
+    }
+
     private void graphQLSchemaGenerated(IntrospectedTable introspectedTable) {
         Template template;
         try {
@@ -59,7 +61,9 @@ public class SchemaGenerator extends FreemarkerExtGenerator implements ExtGenera
         GraphQLSchema graphQLSchema = getGraphQLSchema(introspectedTable);
         String fileName = schemaOutputPath + File.separator + getObjectName(introspectedTable) + ".graphql";
         // 定义输出
-        writFile(template, graphQLSchema, fileName);
+        Map<String, Object> data = new HashMap<>();
+        data.put("gqs", graphQLSchema);
+        writFile(template, data, fileName);
     }
 
     @NotNull
@@ -81,7 +85,7 @@ public class SchemaGenerator extends FreemarkerExtGenerator implements ExtGenera
         String fullyQualifiedName = column.getFullyQualifiedJavaType().getFullyQualifiedName();
         try {
             Class<?> javaType = Class.forName(fullyQualifiedName);
-            schemaField.setType(CLASS_SCALAR_TYPE_MAP.get(javaType));
+            schemaField.setType(CLASS_SCALAR_TYPE_MAP.getOrDefault(javaType, Scalars.GraphQLString));
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

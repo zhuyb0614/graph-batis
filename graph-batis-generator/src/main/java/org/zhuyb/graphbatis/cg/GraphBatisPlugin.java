@@ -27,7 +27,9 @@ public class GraphBatisPlugin extends PluginAdapter {
             String[] names = extGeneratorNames.split(",");
             for (String name : names) {
                 try {
-                    extGenerators.add((ExtGenerator) Class.forName(String.format("org.zhuyb.graphbatis.cg.ext.impl.%sGenerator", name)).newInstance());
+                    ExtGenerator extGenerator = (ExtGenerator) Class.forName(String.format("org.zhuyb.graphbatis.cg.ext.impl.%sGenerator", name)).newInstance();
+                    extGenerator.setUp(properties);
+                    extGenerators.add(extGenerator);
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 } catch (IllegalAccessException e) {
