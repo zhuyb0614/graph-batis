@@ -21,7 +21,7 @@ import org.zhuyb.graphbatis.util.GraphQLTransformUtil;
 @Component
 public class DataFetchingEnvSetUpAspect {
 
-    @Pointcut("execution(public * org.zhuyb.graphbatis.resolver..*.*(..))")
+    @Pointcut("within(org.zhuyb.graphbatis.resolver..*)")
     public void optionalDataFetchPoint() {
     }
 
