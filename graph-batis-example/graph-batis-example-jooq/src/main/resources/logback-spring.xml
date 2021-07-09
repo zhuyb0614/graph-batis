@@ -14,7 +14,7 @@
                     converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
 
     <property name="appName" value="graph-batis-example"/>
-    <property name="logHome" value="/data/logs/${appName}"/>
+    <property name="logHome" value="~/data/logs/${appName}"/>
     <property name="CHARSET" value="UTF-8"/>
     <property name="STDOUT_PATTEN"
               value='%red([%d{HH:mm:ss.SSS}]) %highlight([%level]) %red([%logger{5}#%M\:%line]) %highlight([%msg]) %n'/>

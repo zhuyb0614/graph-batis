@@ -28,10 +28,10 @@ JOIN t_subject AS su ON su.subject_id = t.subject_id
 ```
 
 进入graph-batis-example目录执行 mvn spring-boot:run启动服务后,打开下方链接打开graphiql
-
-
-
 http://localhost:8080/graphiql?query=%7B%0A%20%20findRooms%20%7B%0A%20%20%20%20roomId%0A%20%20%20%20roomName%0A%20%20%20%20teachers%7B%0A%20%20%20%20%20%20teacherName%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D%0A
+
+
+
 
 ![](./img/graphiQLV2.png)
 
