@@ -1,5 +1,7 @@
 package org.zhuyb.graphbatis.entity;
 
+import org.zhuyb.graphbatis.anno.QueryName;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
  * 5. checkout your branch
  * 6. merge feature/gen
  */
+@QueryName("findRooms")
 public class Room implements Serializable {
     /**
      * t_room
