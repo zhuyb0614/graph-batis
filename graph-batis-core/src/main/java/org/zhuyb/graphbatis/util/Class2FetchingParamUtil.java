@@ -76,9 +76,7 @@ public class Class2FetchingParamUtil {
             }
         }
         Preconditions.checkArgument(StringUtils.isNotBlank(queryName), "查询方法名为空");
-        String fields = toQueryString(transfer(clazz, maxDeep));
-        String queryString = "{" + queryName + fields + "}";
-        return queryString;
+        return String.format("{%s%s}", queryName, toQueryString(transfer(clazz, maxDeep)));
     }
 
     public static String toQueryString(Class clazz) {
@@ -110,10 +108,5 @@ public class Class2FetchingParamUtil {
     public static class Deep {
         private int max;
         private int current;
-
-        public Deep incrCurrent() {
-            ++current;
-            return this;
-        }
     }
 }

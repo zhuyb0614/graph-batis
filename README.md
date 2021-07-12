@@ -1,4 +1,4 @@
-# graph-batis
+# graph-batis 不是一个框架,而是一种开发模式
 GraphQL&amp;Mybatis的绝妙搭配
 * [GraphQL 中文文档](https://graphql.cn/)
 
