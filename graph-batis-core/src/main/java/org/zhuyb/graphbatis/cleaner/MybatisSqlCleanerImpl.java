@@ -25,6 +25,7 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
     public static final String D_S = "%d:%s";
     private Integer maxLoopDeep = -1;
     private Integer maxCacheSize = 1024;
+    private boolean openCache = true;
     private Map<String, String> cache;
 
     @Override
@@ -41,13 +42,17 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
     public void setUp(Properties properties) {
         String maxLoopDeepProp = properties.getProperty("maxLoopDeep");
         String maxCacheSize = properties.getProperty("maxCacheSize");
+        String openCache = properties.getProperty("openCache");
         if (StringUtils.isNumeric(maxLoopDeepProp)) {
             this.maxLoopDeep = Integer.valueOf(maxLoopDeepProp);
         }
         if (StringUtils.isNumeric(maxCacheSize)) {
             this.maxCacheSize = Integer.valueOf(maxCacheSize);
         }
-        cache = new ConcurrentHashMap((int) (this.maxCacheSize / 0.75 + 1));
+        if (StringUtils.isNotBlank(openCache)) {
+            this.openCache = Boolean.valueOf(openCache);
+            this.cache = new ConcurrentHashMap((int) (this.maxCacheSize / 0.75 + 1));
+        }
     }
 
     private String getCleanSql(FetchingData fetchingData, String originSQL, int loopTimes) throws JSQLParserException {
@@ -66,12 +71,14 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
         //获取所有查询字段
         Set<String> allGraphQLFieldNames = fetchingData.getFieldNames();
         if (loopTimes == 0) {
-            if (cacheKey == null) {
-                cacheKey = String.format(D_S, originSQL.hashCode(), allGraphQLFieldNames.stream().sorted().collect(Collectors.joining(CACHE_KEY_DELIMITER)));
-            }
-            String cacheSQL = cache.get(cacheKey);
-            if (cacheSQL != null) {
-                return cacheSQL;
+            if (openCache) {
+                if (cacheKey == null) {
+                    cacheKey = String.format(D_S, originSQL.hashCode(), allGraphQLFieldNames.stream().sorted().collect(Collectors.joining(CACHE_KEY_DELIMITER)));
+                }
+                String cacheSQL = cache.get(cacheKey);
+                if (cacheSQL != null) {
+                    return cacheSQL;
+                }
             }
         } else if (maxLoopDeep != -1 && loopTimes > maxLoopDeep) {
             log.warn("loop times {} break", loopTimes);
