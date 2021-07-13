@@ -77,9 +77,20 @@ JOIN t_student AS st ON st.room_id = r.room_id
 - [x]  查询缓存
 - [x]  向上抽取抽象,使其通用化不局限GraphQL
 - [x]  接入JOOQ
+- [x]  扁平化查询
 - [ ]  提供Client
 - [ ]  接入Hibernate
 - [ ]  JDBC方式SQL改写
 - [ ]  中间表voyager
 - [ ]  分页
 - [ ]  复杂条件查询
+
+## MyBatis,JOOQ,Hibernate优缺点对比
+### MyBatis
+#### 优势
+1. 对象映射,通过collection,association标签可以很直观的映射关联关系
+2. SQL缓存,因为我们是直接解析的SQL所以很容易缓存固定的查询条件SQL
+
+#### 劣势
+
+1. 直接解析SQL无官方API

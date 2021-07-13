@@ -1,6 +1,7 @@
 package org.zhuyb.graphbatis.util;
 
 import org.junit.jupiter.api.Test;
+import org.zhuyb.graphbatis.entity.Flat;
 import org.zhuyb.graphbatis.entity.Room;
 
 /**
@@ -15,5 +16,7 @@ public class Class2FetchingParamUtilTest {
         System.out.println(queryString);
         String queryString1 = Class2FetchingParamUtil.toQueryString(Room.class);
         System.out.println(queryString1);
+        String queryString2 = Class2FetchingParamUtil.toQueryString(Flat.class);
+        System.out.println(queryString2);
     }
 }

@@ -1,6 +1,7 @@
 package org.zhuyb.graphbatis.entity;
 
 import lombok.Data;
+import org.zhuyb.graphbatis.anno.QueryName;
 
 /**
  * @author yunbo.zhu
@@ -8,6 +9,7 @@ import lombok.Data;
  * @date 2021/7/9 5:28 下午
  */
 @Data
+@QueryName("findFlat")
 public class Flat {
     /**
      *

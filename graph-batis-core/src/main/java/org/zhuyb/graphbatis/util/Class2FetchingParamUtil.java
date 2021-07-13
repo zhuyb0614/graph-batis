@@ -3,8 +3,6 @@ package org.zhuyb.graphbatis.util;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Primitives;
-import lombok.Data;
-import lombok.experimental.Accessors;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.zhuyb.graphbatis.anno.Ignore;
@@ -33,12 +31,8 @@ public class Class2FetchingParamUtil {
     }
 
     private static List<FetchingField> transfer(Class clazz, int maxDeep) {
-        return transfer(clazz, new Deep().setMax(maxDeep));
-    }
-
-    private static List<FetchingField> transfer(Class clazz, Deep deep) {
         List<FetchingField> fetchingFields = null;
-        if (deep.getCurrent() < deep.getMax()) {
+        if (maxDeep > 0) {
             fetchingFields = new ArrayList<>();
             Field[] fields = clazz.getDeclaredFields();
             Set<String> getMethodFieldNames = Arrays.stream(clazz.getDeclaredMethods())
@@ -53,9 +47,9 @@ public class Class2FetchingParamUtil {
                         fetchingField.setPrimitive(true);
                     } else if (Collection.class.isAssignableFrom(fieldType)) {
                         ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
-                        fetchingField.setSubParams(transfer((Class) parameterizedType.getActualTypeArguments()[0], new Deep().setMax(deep.getMax() - 1).setCurrent(0)));
+                        fetchingField.setSubParams(transfer((Class) parameterizedType.getActualTypeArguments()[0], maxDeep - 1));
                     } else {
-                        fetchingField.setSubParams(transfer(fieldType, new Deep().setMax(deep.getMax() - 1).setCurrent(0)));
+                        fetchingField.setSubParams(transfer(fieldType, maxDeep - 1));
                     }
                     if (fetchingField != null) {
                         fetchingFields.add(fetchingField);
@@ -101,12 +95,5 @@ public class Class2FetchingParamUtil {
             return queryStringBuilder.toString().replaceAll(",}", "}");
         }
         return "";
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static class Deep {
-        private int max;
-        private int current;
     }
 }

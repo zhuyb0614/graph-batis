@@ -6,4 +6,5 @@ type Flat {
   roomName: String
   studentName: String
   teacherName: String
+  subjectName: String
 }
