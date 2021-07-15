@@ -51,7 +51,9 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
         }
         if (StringUtils.isNotBlank(openCache)) {
             this.openCache = Boolean.valueOf(openCache);
-            this.cache = new ConcurrentHashMap((int) (this.maxCacheSize / 0.75 + 1));
+            if (this.openCache) {
+                this.cache = new ConcurrentHashMap((int) (this.maxCacheSize / 0.75 + 1));
+            }
         }
     }
 
@@ -102,7 +104,9 @@ public class MybatisSqlCleanerImpl implements SqlCleaner {
         selectBody.setJoins(joins);
         String cleanSql = selectBody.toString();
         if (joins == null || joins.isEmpty() || originSQL.equals(cleanSql)) {
-            cache.put(cacheKey, cleanSql);
+            if (openCache) {
+                cache.put(cacheKey, cleanSql);
+            }
             return cleanSql;
         } else {
             log.debug("loop times {} clean sql ==> {}", loopTimes + 1, cleanSql);
